@@ -1,0 +1,201 @@
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        phone:
+          type: string
+          example: "4155552671"
+        name:
+          type: string
+          nullable: true
+          example: John Doe
+        role:
+          type: string
+          example: user
+        isBlocked:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Token:
+      type: object
+      description: JWT object returned by the API after a successful login.
+      properties:
+        token:
+          type: string
+          description: Full JWT string. Copy this only from the **Response body** after clicking Execute on verify-otp. Schema example values are not valid tokens.
+        expires:
+          type: string
+          format: date-time
+
+    AuthTokens:
+      type: object
+      description: Use `refresh.token` for logout, not `access.token`.
+      properties:
+        access:
+          $ref: "#/components/schemas/Token"
+        refresh:
+          $ref: "#/components/schemas/Token"
+
+    SendOtpRequest:
+      type: object
+      required:
+        - phone
+      properties:
+        phone:
+          type: string
+          pattern: '^[2-9]\d{9}$'
+          example: "4155552671"
+          description: US phone number (10 digits)
+
+    VerifyOtpRequest:
+      type: object
+      required:
+        - phone
+        - code
+      properties:
+        phone:
+          type: string
+          pattern: '^[2-9]\d{9}$'
+          example: "4155552671"
+        code:
+          type: string
+          minLength: 5
+          maxLength: 5
+          example: "12345"
+
+    SendOtpResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: OTP sent successfully
+
+    VerifyOtpLoginResponse:
+      type: object
+      properties:
+        isRegistered:
+          type: boolean
+          example: true
+        user:
+          $ref: "#/components/schemas/User"
+        tokens:
+          $ref: "#/components/schemas/AuthTokens"
+
+    VerifyOtpRegisterResponse:
+      type: object
+      properties:
+        isRegistered:
+          type: boolean
+          example: false
+        phone:
+          type: string
+          example: "4155552671"
+        message:
+          type: string
+          example: Phone verified. Please complete registration.
+
+    LogoutRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          description: Paste `tokens.refresh.token` from the verify-otp **Response body** after Execute. Leave empty until you have a real token.
+
+    UpdateMyProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 50
+          example: John Doe
+          description: Display name for the user
+      minProperties: 1
+
+    UpdateUserByIdRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 50
+          example: Jane Smith
+          description: Display name for the user
+        role:
+          type: string
+          enum:
+            - USER
+            - ADMIN
+          example: USER
+          description: User role
+        isBlocked:
+          type: boolean
+          example: false
+          description: Whether the user account is blocked
+      minProperties: 1
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: number
+        message:
+          type: string
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 400
+            message: Invalid OTP code.
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 401
+            message: Please authenticate
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 403
+            message: Forbidden
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: 404
+            message: Not found
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  

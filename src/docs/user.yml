@@ -1,0 +1,168 @@
+paths:
+  /admin/users:
+    get:
+      summary: Get all users
+      description: |
+        Returns a list of all users. **Admin only** — requires the `getUsers` right.
+
+        Use `tokens.access.token` from the **verify-otp Response body** (not the schema Example Value).
+        Click **Authorize** at the top of Swagger UI and paste the access token.
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of users retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/users/{id}/block:
+    patch:
+      summary: Block user by ID
+      description: |
+        Blocks a user by ID. The user record is kept in the database but cannot log in or use the API.
+        **Admin only** — requires the `manageUsers` right.
+
+        An admin cannot block their own account.
+
+        Use `tokens.access.token` from the **verify-otp Response body** (not the schema Example Value).
+        Click **Authorize** at the top of Swagger UI and paste the access token.
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 2
+          description: ID of the user to block
+      responses:
+        "200":
+          description: User blocked successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /admin/users/{id}:
+    patch:
+      summary: Update user by ID
+      description: |
+        Updates a user by ID. **Admin only** — requires the `manageUsers` right.
+
+        At least one field must be provided in the request body. An admin cannot change their own `role` or `isBlocked` status.
+
+        Use `tokens.access.token` from the **verify-otp Response body** (not the schema Example Value).
+        Click **Authorize** at the top of Swagger UI and paste the access token.
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 2
+          description: ID of the user to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserByIdRequest"
+      responses:
+        "200":
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/my-profile:
+    get:
+      summary: Get my profile
+      description: |
+        Returns the profile of the currently authenticated user.
+
+        Use `tokens.access.token` from the **verify-otp Response body** (not the schema Example Value).
+        Click **Authorize** at the top of Swagger UI and paste the access token.
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    patch:
+      summary: Update my profile
+      description: |
+        Updates the profile of the currently authenticated user.
+
+        Use `tokens.access.token` from the **verify-otp Response body** (not the schema Example Value).
+        Click **Authorize** at the top of Swagger UI and paste the access token.
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMyProfileRequest"
+      responses:
+        "200":
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+tags:
+  - name: User
+    description: User profile and account

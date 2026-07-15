@@ -1,0 +1,79 @@
+paths:
+  /auth/send-otp:
+    post:
+      summary: Send OTP to phone number
+      description: Generates a 5-digit OTP and sends it to the provided phone number.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendOtpRequest"
+      responses:
+        "200":
+          description: OTP sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendOtpResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /auth/verify-otp:
+    post:
+      summary: Verify OTP
+      description: |
+        Verifies the OTP code. If the phone belongs to an existing user, returns auth tokens.
+        If the user is new, returns `isRegistered: false` so the client can redirect to registration.
+
+        **Important:** After you click **Execute**, copy tokens from the **Response body** section below.
+        Do **not** copy from the **Example Value** tab in the schema docs — those are placeholders and will not work.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyOtpRequest"
+      responses:
+        "200":
+          description: OTP verified
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/VerifyOtpLoginResponse"
+                  - $ref: "#/components/schemas/VerifyOtpRegisterResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /auth/logout:
+    post:
+      summary: Log out
+      description: |
+        Invalidates the refresh token so it cannot be used again.
+
+        Use `tokens.refresh.token` from the **verify-otp Response body** (not the schema Example Value).
+        The access token (`tokens.access.token`) cannot be used here.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogoutRequest"
+      responses:
+        "204":
+          description: Logged out successfully
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+tags:
+  - name: Auth
+    description: Phone OTP authentication
