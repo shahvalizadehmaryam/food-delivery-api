@@ -15,7 +15,10 @@ components:
           example: John Doe
         role:
           type: string
-          example: user
+          enum:
+            - USER
+            - ADMIN
+          example: USER
         isBlocked:
           type: boolean
           example: false
@@ -32,10 +35,12 @@ components:
       properties:
         token:
           type: string
-          description: Full JWT string. Copy this only from the **Response body** after clicking Execute on verify-otp. Schema example values are not valid tokens.
+          description: Full JWT string. Copy this only from the **Response body** after clicking Execute on verify-otp.
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImlhdCI6MTc1MzAwMDAwMCwiZXhwIjoxNzUzMDAxODAwLCJ0eXBlIjoiQUNDRVNTIn0.dGV2LWV4YW1wbGUtdG9rZW4
         expires:
           type: string
           format: date-time
+          example: "2026-07-20T08:12:36.126Z"
 
     AuthTokens:
       type: object
@@ -90,6 +95,23 @@ components:
           $ref: "#/components/schemas/User"
         tokens:
           $ref: "#/components/schemas/AuthTokens"
+      example:
+        isRegistered: true
+        user:
+          id: 1
+          phone: "4155552671"
+          name: John Doe
+          role: USER
+          isBlocked: false
+          createdAt: "2026-07-20T07:42:36.126Z"
+          updatedAt: "2026-07-20T07:42:36.126Z"
+        tokens:
+          access:
+            token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImlhdCI6MTc1MzAwMDAwMCwiZXhwIjoxNzUzMDAxODAwLCJ0eXBlIjoiQUNDRVNTIn0.dGV2LWV4YW1wbGUtdG9rZW4
+            expires: "2026-07-20T08:12:36.126Z"
+          refresh:
+            token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImlhdCI6MTc1MzAwMDAwMCwiZXhwIjoxNzU1NTkyMDAwLCJ0eXBlIjoiUkVGUkVTSCJ9.dGV2LWV4YW1wbGUtdG9rZW4
+            expires: "2026-08-19T07:42:36.126Z"
 
     VerifyOtpRegisterResponse:
       type: object

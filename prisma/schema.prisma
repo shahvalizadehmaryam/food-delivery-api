@@ -48,3 +48,30 @@ enum TokenType {
   RESET_PASSWORD
   VERIFY_EMAIL
 }
+
+model MenuSection {
+  id        String     @id          // "burgers", "fries"
+  title     String                  // "Burgers"
+  sortOrder Int        @default(0)  // optional: control section order
+  items     MenuItem[]
+}
+
+model MenuItem {
+  id          Int            @id @default(autoincrement())
+  title       String
+  description String
+  image       String
+  sectionId   String
+  section     MenuSection    @relation(fields: [sectionId], references: [id])
+  sizes       MenuItemSize[]
+}
+
+model MenuItemSize {
+  id            String   @id          // "small", "medium", "large"
+  label         String                 // "Small"
+  price         Decimal  @db.Decimal(10, 2)
+  discountType  String?                // "percentage" | "fixed"
+  discountValue Decimal? @db.Decimal(10, 2)
+  itemId        Int
+  item          MenuItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+}
