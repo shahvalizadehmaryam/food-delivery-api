@@ -67,11 +67,13 @@ model MenuItem {
 }
 
 model MenuItemSize {
-  id            String   @id          // "small", "medium", "large"
+  id            String                 // "small", "medium", "large"
   label         String                 // "Small"
   price         Decimal  @db.Decimal(10, 2)
   discountType  String?                // "percentage" | "fixed"
   discountValue Decimal? @db.Decimal(10, 2)
   itemId        Int
   item          MenuItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@id([itemId, id])
 }

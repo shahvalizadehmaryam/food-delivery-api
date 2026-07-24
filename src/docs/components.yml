@@ -176,6 +176,91 @@ components:
         message:
           type: string
 
+    # --- Menu schemas (mirror src/types/menu.ts) ---
+
+    MenuItemSize:
+      type: object
+      description: One size option for a menu item (Small, Medium, Large).
+      required:
+        - id
+        - label
+        - price
+      properties:
+        id:
+          type: string
+          example: small
+          description: Unique size id within the item (e.g. small, medium, large)
+        label:
+          type: string
+          example: Small
+          description: Display label shown in the UI
+        price:
+          type: number
+          format: float
+          example: 7.19
+          description: Base price in dollars before discount
+        discountType:
+          type: string
+          enum:
+            - percentage
+            - fixed
+          example: percentage
+          description: How the discount is applied (optional)
+        discountValue:
+          type: number
+          format: float
+          example: 5
+          description: Discount amount — percentage (5 = 5%) or fixed dollars (4 = $4 off)
+
+    MenuItem:
+      type: object
+      description: A single food item card in the menu grid.
+      required:
+        - id
+        - title
+        - description
+        - image
+        - sizes
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Royal Cheese Burger with extra Fries
+        description:
+          type: string
+          example: 1 McChicken™, 1 Big Mac™, 1 Royal Cheese Burger and 1 Royal Cheese Bacon Burger, 4 Medium Fries and 4 drinks of your choice
+        image:
+          type: string
+          format: uri
+          example: https://example.com/images/burger-royal.jpg
+        sizes:
+          type: array
+          items:
+            $ref: "#/components/schemas/MenuItemSize"
+
+    MenuSection:
+      type: object
+      description: A menu category section (e.g. Burgers, Fries).
+      required:
+        - id
+        - title
+        - items
+      properties:
+        id:
+          type: string
+          example: burgers
+          description: URL-friendly section id
+        title:
+          type: string
+          example: Burgers
+          description: Section heading shown in the UI
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/MenuItem"
+
   responses:
     BadRequest:
       description: Bad request

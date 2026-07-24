@@ -11,6 +11,7 @@ const swaggerSpec = swaggerJsdoc({
   apis: [
     path.join(process.cwd(), 'src/docs/auth.yml'),
     path.join(process.cwd(), 'src/docs/user.yml'),
+    path.join(process.cwd(), 'src/docs/menu.yml'),
     path.join(process.cwd(), 'src/docs/components.yml'),
   ],
 });

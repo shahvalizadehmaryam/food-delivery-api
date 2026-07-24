@@ -1,0 +1,77 @@
+# Menu API paths — loaded automatically by src/routes/v1/docs.route.ts
+paths:
+  /menu:
+    get:
+      summary: Get full restaurant menu
+      description: |
+        Returns the complete menu grouped by sections (e.g. Burgers, Fries, Cold Drinks).
+
+        **Public endpoint** — no login required.
+
+        Each item includes sizes with optional discounts:
+        - `discountType: "percentage"` → e.g. 5 means 5% off
+        - `discountType: "fixed"` → e.g. 4 means $4 off
+
+        The frontend typically shows **"From $X"** using the lowest discounted price across `sizes`.
+      tags:
+        - Menu
+      responses:
+        "200":
+          description: Menu retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MenuSection"
+              examples:
+                fullMenu:
+                  summary: Sample menu (matches UI layout)
+                  value:
+                    - id: burgers
+                      title: Burgers
+                      items:
+                        - id: 1
+                          title: Royal Cheese Burger with extra Fries
+                          description: 1 McChicken™, 1 Big Mac™, 1 Royal Cheese Burger and 1 Royal Cheese Bacon Burger, 4 Medium Fries and 4 drinks of your choice
+                          image: https://example.com/images/burger-royal.jpg
+                          sizes:
+                            - id: small
+                              label: Small
+                              price: 7.19
+                              discountType: percentage
+                              discountValue: 5
+                            - id: medium
+                              label: Medium
+                              price: 8.49
+                            - id: large
+                              label: Large
+                              price: 9.99
+                              discountType: fixed
+                              discountValue: 4
+                    - id: fries
+                      title: Fries
+                      items:
+                        - id: 2
+                          title: Royal Cheese Burger with extra Fries
+                          description: 1 McChicken™, 1 Big Mac™, 1 Royal Cheese Burger and 1 Royal Cheese Bacon Burger, 4 Medium Fries and 4 drinks of your choice
+                          image: https://example.com/images/fries-combo.jpg
+                          sizes:
+                            - id: small
+                              label: Small
+                              price: 5.99
+                            - id: medium
+                              label: Medium
+                              price: 6.99
+                            - id: large
+                              label: Large
+                              price: 7.99
+                              discountType: percentage
+                              discountValue: 10
+                    - id: cold-drinks
+                      title: Cold Drinks
+                      items: []
+
+tags:
+  - name: Menu
+    description: Restaurant menu (public)
