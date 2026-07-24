@@ -47,6 +47,33 @@ paths:
                 oneOf:
                   - $ref: "#/components/schemas/VerifyOtpLoginResponse"
                   - $ref: "#/components/schemas/VerifyOtpRegisterResponse"
+              examples:
+                existingUser:
+                  summary: Existing user (login)
+                  description: Real tokens appear here after you click Execute — copy from the live Response body, not this static sample.
+                  value:
+                    isRegistered: true
+                    user:
+                      id: 1
+                      phone: "4155552671"
+                      name: John Doe
+                      role: USER
+                      isBlocked: false
+                      createdAt: "2026-07-20T07:42:36.126Z"
+                      updatedAt: "2026-07-20T07:42:36.126Z"
+                    tokens:
+                      access:
+                        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImlhdCI6MTc1MzAwMDAwMCwiZXhwIjoxNzUzMDAxODAwLCJ0eXBlIjoiQUNDRVNTIn0.dGV2LWV4YW1wbGUtdG9rZW4
+                        expires: "2026-07-20T08:12:36.126Z"
+                      refresh:
+                        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImlhdCI6MTc1MzAwMDAwMCwiZXhwIjoxNzU1NTkyMDAwLCJ0eXBlIjoiUkVGUkVTSCJ9.dGV2LWV4YW1wbGUtdG9rZW4
+                        expires: "2026-08-19T07:42:36.126Z"
+                newUser:
+                  summary: New user (register next)
+                  value:
+                    isRegistered: false
+                    phone: "4155552671"
+                    message: Phone verified. Please complete registration.
         "400":
           $ref: "#/components/responses/BadRequest"
 
