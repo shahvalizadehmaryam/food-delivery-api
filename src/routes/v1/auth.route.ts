@@ -16,6 +16,12 @@ router.post(
   validate(authValidation.verifyOtp),
   authController.verifyOtp,
 );
+// Create account after OTP — body: phone, code, name, lastname, state, city, address, dob
+router.post(
+  "/register",
+  validate(authValidation.register),
+  authController.register,
+);
 router.post(
   "/logout",
   validate(authValidation.logout),

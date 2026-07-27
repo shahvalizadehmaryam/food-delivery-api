@@ -56,7 +56,12 @@ paths:
                     user:
                       id: 1
                       phone: "4155552671"
-                      name: John Doe
+                      name: Mary-Jane
+                      lastname: O'Brien
+                      state: CA
+                      city: Los Angeles
+                      address: 123 Main Street
+                      dob: "2000-01-15"
                       role: USER
                       isBlocked: false
                       createdAt: "2026-07-20T07:42:36.126Z"
@@ -76,6 +81,95 @@ paths:
                     message: Phone verified. Please complete registration.
         "400":
           $ref: "#/components/responses/BadRequest"
+
+  /auth/register:
+    post:
+      summary: Register a new user
+      description: |
+        Completes registration for a **new** phone number after OTP was verified.
+
+        **Flow:** `send-otp` → `verify-otp` (returns `isRegistered: false`) → `register`
+
+        Use the same `phone` and `code` from the previous steps. The OTP is consumed on success
+        and cannot be reused. On success, returns the new user and auth tokens.
+
+        ### Field rules
+        | Field | Rules |
+        |-------|--------|
+        | `name` / `lastname` | Trimmed, 2–50 chars. Letters only (spaces, apostrophes, hyphens allowed). Must start with a letter. |
+        | `state` | Trimmed US state code (e.g. `CA`). Must be from the allowed list. |
+        | `city` | Trimmed, required. Must be a valid city for the selected `state`. |
+        | `address` | Trimmed, 5–120 characters. |
+        | `dob` | `YYYY-MM-DD`. Not in the future. User must be at least 13 years old. |
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+            example:
+              phone: "4155552671"
+              code: "12345"
+              name: Mary-Jane
+              lastname: O'Brien
+              state: CA
+              city: Los Angeles
+              address: 123 Main Street
+              dob: "2000-01-15"
+      responses:
+        "201":
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisterResponse"
+              example:
+                user:
+                  id: 1
+                  phone: "4155552671"
+                  name: Mary-Jane
+                  lastname: O'Brien
+                  state: CA
+                  city: Los Angeles
+                  address: 123 Main Street
+                  dob: "2000-01-15"
+                  role: USER
+                  isBlocked: false
+                  createdAt: "2026-07-27T08:00:00.000Z"
+                  updatedAt: "2026-07-27T08:00:00.000Z"
+                tokens:
+                  access:
+                    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImlhdCI6MTc1MzAwMDAwMCwiZXhwIjoxNzUzMDAxODAwLCJ0eXBlIjoiQUNDRVNTIn0.dGV2LWV4YW1wbGUtdG9rZW4
+                    expires: "2026-07-27T08:30:00.000Z"
+                  refresh:
+                    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImlhdCI6MTc1MzAwMDAwMCwiZXhwIjoxNzU1NTkyMDAwLCJ0eXBlIjoiUkVGUkVTSCJ9.dGV2LWV4YW1wbGUtdG9rZW4
+                    expires: "2026-08-26T08:00:00.000Z"
+        "400":
+          description: |
+            Validation failed, invalid/expired OTP, or phone already registered.
+            Common messages: invalid name, invalid state/city, dob too young, OTP expired.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                validationError:
+                  summary: Validation error
+                  value:
+                    code: 400
+                    message: city must be a valid city for the selected state
+                phoneExists:
+                  summary: Phone already registered
+                  value:
+                    code: 400
+                    message: An account with this phone already exists
+                invalidOtp:
+                  summary: Invalid or expired OTP
+                  value:
+                    code: 400
+                    message: Invalid OTP code.
 
   /auth/logout:
     post:

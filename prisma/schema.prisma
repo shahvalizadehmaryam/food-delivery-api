@@ -7,13 +7,18 @@ datasource db {
   provider = "postgresql"
 }
 model User {
-  id        Int      @id @default(autoincrement())
-  phone     String   @unique
+  id        Int       @id @default(autoincrement())
+  phone     String    @unique
   name      String?
-  role      Role     @default(USER)
-  isBlocked Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  lastname  String?   // last / family name from registration
+  state     String?   // US state code, e.g. "CA"
+  city      String?
+  address   String?
+  dob       DateTime? @db.Date // date of birth (YYYY-MM-DD)
+  role      Role      @default(USER)
+  isBlocked Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   tokens    Token[]
 }
 
