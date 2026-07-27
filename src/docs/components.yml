@@ -12,7 +12,32 @@ components:
         name:
           type: string
           nullable: true
-          example: John Doe
+          example: Mary-Jane
+          description: First name
+        lastname:
+          type: string
+          nullable: true
+          example: O'Brien
+          description: Last name
+        state:
+          type: string
+          nullable: true
+          example: CA
+          description: US state code
+        city:
+          type: string
+          nullable: true
+          example: Los Angeles
+        address:
+          type: string
+          nullable: true
+          example: 123 Main Street
+        dob:
+          type: string
+          format: date
+          nullable: true
+          example: "2000-01-15"
+          description: Date of birth (YYYY-MM-DD)
         role:
           type: string
           enum:
@@ -100,7 +125,12 @@ components:
         user:
           id: 1
           phone: "4155552671"
-          name: John Doe
+          name: Mary-Jane
+          lastname: O'Brien
+          state: CA
+          city: Los Angeles
+          address: 123 Main Street
+          dob: "2000-01-15"
           role: USER
           isBlocked: false
           createdAt: "2026-07-20T07:42:36.126Z"
@@ -125,6 +155,131 @@ components:
         message:
           type: string
           example: Phone verified. Please complete registration.
+
+    # Request body for POST /auth/register
+    RegisterRequest:
+      type: object
+      required:
+        - phone
+        - code
+        - name
+        - lastname
+        - state
+        - city
+        - address
+        - dob
+      properties:
+        phone:
+          type: string
+          pattern: '^[2-9]\d{9}$'
+          example: "4155552671"
+          description: Same US phone used in send-otp / verify-otp (10 digits)
+        code:
+          type: string
+          minLength: 5
+          maxLength: 5
+          example: "12345"
+          description: 5-digit OTP from send-otp (must still be valid)
+        name:
+          type: string
+          minLength: 2
+          maxLength: 50
+          pattern: '^[A-Za-z][A-Za-z\s''-]{1,49}$'
+          example: Mary-Jane
+          description: |
+            First name. Trimmed. Letters only (spaces, apostrophes, hyphens allowed).
+            Must start with a letter.
+        lastname:
+          type: string
+          minLength: 2
+          maxLength: 50
+          pattern: '^[A-Za-z][A-Za-z\s''-]{1,49}$'
+          example: O'Brien
+          description: Last name. Same rules as `name`.
+        state:
+          type: string
+          enum:
+            - AL
+            - AK
+            - AZ
+            - AR
+            - CA
+            - CO
+            - CT
+            - DE
+            - DC
+            - FL
+            - GA
+            - HI
+            - ID
+            - IL
+            - IN
+            - IA
+            - KS
+            - KY
+            - LA
+            - ME
+            - MD
+            - MA
+            - MI
+            - MN
+            - MS
+            - MO
+            - MT
+            - NE
+            - NV
+            - NH
+            - NJ
+            - NM
+            - NY
+            - NC
+            - ND
+            - OH
+            - OK
+            - OR
+            - PA
+            - RI
+            - SC
+            - SD
+            - TN
+            - TX
+            - UT
+            - VT
+            - VA
+            - WA
+            - WV
+            - WI
+            - WY
+          example: CA
+          description: US state / district code (50 states + DC)
+        city:
+          type: string
+          minLength: 1
+          example: Los Angeles
+          description: City name. Must be a valid city for the selected `state`.
+        address:
+          type: string
+          minLength: 5
+          maxLength: 120
+          example: 123 Main Street
+          description: Street address (trimmed, 5–120 characters)
+        dob:
+          type: string
+          format: date
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+          example: "2000-01-15"
+          description: |
+            Date of birth as YYYY-MM-DD.
+            Must not be in the future. User must be at least 13 years old.
+
+    # Success response for POST /auth/register
+    RegisterResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        tokens:
+          $ref: "#/components/schemas/AuthTokens"
 
     LogoutRequest:
       type: object

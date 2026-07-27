@@ -31,7 +31,14 @@ const sendOtp = async (phone: string) => {
 };
 
 // 3. Verify OTP
-const verifyOtp = async (phone: string, code: string) => {
+// consume: false keeps the code so /auth/register can use { phone, code } next
+const verifyOtp = async (
+  phone: string,
+  code: string,
+  options: { consume?: boolean } = {},
+) => {
+  const { consume = true } = options;
+
   const otpRecord = await prisma.otp.findFirst({
     where: { phone },
     orderBy: { createdAt: "desc" },
@@ -56,8 +63,9 @@ const verifyOtp = async (phone: string, code: string) => {
     throw new ApiError(httpStatus.BAD_REQUEST, "Invalid OTP code.");
   }
 
-  // OTP used — delete it
-  await prisma.otp.delete({ where: { id: otpRecord.id } });
+  if (consume) {
+    await prisma.otp.delete({ where: { id: otpRecord.id } });
+  }
 
   return true;
 };
