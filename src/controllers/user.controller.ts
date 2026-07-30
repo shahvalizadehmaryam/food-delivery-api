@@ -17,7 +17,12 @@ const getMyProfile = catchAsync(async (req, res) => {
 
 const updateMyProfile = catchAsync(async (req, res) => {
   const userId = (req.user as { id: number }).id;
-  const user = await userService.updateUserById(userId, req.body);
+  const { dob, ...rest } = req.body;
+  const data = {
+    ...rest,
+    ...(dob !== undefined ? { dob: new Date(dob) } : {}),
+  };
+  const user = await userService.updateUserById(userId, data);
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   }
