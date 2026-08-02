@@ -1,0 +1,148 @@
+# Flash Deal API paths — loaded by src/routes/v1/docs.route.ts
+paths:
+  /flash-deals:
+    get:
+      summary: List currently active flash deals
+      description: |
+        Returns only deals that are live right now
+        (`isActive` and `startsAt <= now < endsAt`).
+
+        **Public endpoint** — no login required.
+      tags:
+        - Flash Deals
+      responses:
+        "200":
+          description: Active flash deals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FlashDeal"
+
+  /admin/flash-deals:
+    get:
+      summary: List all flash deals (admin)
+      description: Includes upcoming, active, and expired deals.
+      tags:
+        - Flash Deals
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: All flash deals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FlashDeal"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      summary: Create a flash deal (admin)
+      description: |
+        Create a time-limited discount for a menu item.
+
+        Example — 25% off medium size for **4 hours**:
+        ```json
+        {
+          "menuItemId": 1,
+          "sizeId": "medium",
+          "discountType": "percentage",
+          "discountValue": 25,
+          "durationHours": 4
+        }
+        ```
+      tags:
+        - Flash Deals
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFlashDealRequest"
+      responses:
+        "201":
+          description: Flash deal created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlashDeal"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: Menu item not found
+        "409":
+          description: Overlapping active deal for the same item/size
+
+  /admin/flash-deals/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Get flash deal by id (admin)
+      tags:
+        - Flash Deals
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Flash deal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlashDeal"
+        "404":
+          description: Flash deal not found
+    patch:
+      summary: Update flash deal (admin)
+      description: |
+        Change discount, window, or set `isActive: false` to end early.
+      tags:
+        - Flash Deals
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateFlashDealRequest"
+      responses:
+        "200":
+          description: Updated flash deal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlashDeal"
+        "404":
+          description: Flash deal not found
+        "409":
+          description: Overlapping active deal
+    delete:
+      summary: Delete flash deal (admin)
+      tags:
+        - Flash Deals
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Flash deal not found
+
+tags:
+  - name: Flash Deals
+    description: Time-limited product discounts (public list + admin CRUD)

@@ -8,6 +8,13 @@ export type MenuItemSize = {
   price: number;
   discountType?: "percentage" | "fixed";
   discountValue?: number;
+  /** Price after discount (static or flash). Omitted when there is no discount. */
+  finalPrice?: number;
+  /** Present only while a flash deal is active for this size */
+  flashDeal?: {
+    id: number;
+    endsAt: Date;
+  };
 };
 
 /** A single food item shown as a card in the menu grid */

@@ -205,6 +205,8 @@ const buildSizes = (mediumPrice: number, discount?: Discount) =>
   }));
 
 async function main() {
+  // FlashDeal FKs menu items — clear deals before wiping the menu
+  await prisma.flashDeal.deleteMany();
   await prisma.menuItemSize.deleteMany();
   await prisma.menuItem.deleteMany();
   await prisma.menuSection.deleteMany();

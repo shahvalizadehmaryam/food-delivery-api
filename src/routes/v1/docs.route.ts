@@ -12,6 +12,7 @@ const swaggerSpec = swaggerJsdoc({
     path.join(process.cwd(), 'src/docs/auth.yml'),
     path.join(process.cwd(), 'src/docs/user.yml'),
     path.join(process.cwd(), 'src/docs/menu.yml'),
+    path.join(process.cwd(), 'src/docs/flashDeal.yml'),
     path.join(process.cwd(), 'src/docs/components.yml'),
   ],
 });

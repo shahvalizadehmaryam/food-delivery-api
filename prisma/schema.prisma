@@ -69,6 +69,26 @@ model MenuItem {
   sectionId   String
   section     MenuSection    @relation(fields: [sectionId], references: [id])
   sizes       MenuItemSize[]
+  flashDeals  FlashDeal[]
+}
+
+/// Time-limited discount for a menu item (optionally one size only).
+/// Active when: isActive && startsAt <= now < endsAt
+model FlashDeal {
+  id            Int      @id @default(autoincrement())
+  menuItemId    Int
+  menuItem      MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  sizeId        String?  // null = apply to all sizes; e.g. "medium" = one size only
+  discountType  String   // "percentage" | "fixed"
+  discountValue Decimal  @db.Decimal(10, 2)
+  startsAt      DateTime
+  endsAt        DateTime
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([isActive, startsAt, endsAt])
+  @@index([menuItemId])
 }
 
 model MenuItemSize {

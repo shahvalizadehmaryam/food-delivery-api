@@ -366,6 +366,140 @@ components:
           format: float
           example: 5
           description: Discount amount — percentage (5 = 5%) or fixed dollars (4 = $4 off)
+        finalPrice:
+          type: number
+          format: float
+          example: 6.83
+          description: Price after discount (static or flash). Omitted when there is no discount.
+        flashDeal:
+          type: object
+          description: Present only while a flash deal is active for this size
+          properties:
+            id:
+              type: integer
+              example: 1
+            endsAt:
+              type: string
+              format: date-time
+              example: "2026-08-02T14:00:00.000Z"
+
+    FlashDeal:
+      type: object
+      description: Time-limited discount for a menu item (optionally one size).
+      properties:
+        id:
+          type: integer
+          example: 1
+        menuItemId:
+          type: integer
+          example: 3
+        sizeId:
+          type: string
+          nullable: true
+          example: medium
+          description: null = all sizes on the item
+        discountType:
+          type: string
+          enum:
+            - percentage
+            - fixed
+          example: percentage
+        discountValue:
+          type: number
+          format: float
+          example: 25
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        menuItem:
+          type: object
+          properties:
+            id:
+              type: integer
+            title:
+              type: string
+            image:
+              type: string
+
+    CreateFlashDealRequest:
+      type: object
+      required:
+        - menuItemId
+        - discountType
+        - discountValue
+      description: |
+        Provide **either** `durationHours` **or** `endsAt` (not both).
+        `startsAt` defaults to now if omitted.
+      properties:
+        menuItemId:
+          type: integer
+          example: 1
+        sizeId:
+          type: string
+          nullable: true
+          enum:
+            - small
+            - medium
+            - large
+          example: medium
+        discountType:
+          type: string
+          enum:
+            - percentage
+            - fixed
+          example: percentage
+        discountValue:
+          type: number
+          example: 25
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+        durationHours:
+          type: number
+          example: 4
+          description: Convenience — sets endsAt = startsAt + N hours
+
+    UpdateFlashDealRequest:
+      type: object
+      properties:
+        sizeId:
+          type: string
+          nullable: true
+          enum:
+            - small
+            - medium
+            - large
+        discountType:
+          type: string
+          enum:
+            - percentage
+            - fixed
+        discountValue:
+          type: number
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+        isActive:
+          type: boolean
+          description: Set false to end a deal early
 
     MenuItem:
       type: object
