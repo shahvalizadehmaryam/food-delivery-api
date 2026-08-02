@@ -54,6 +54,14 @@ if (config.env === 'production') {
   app.use('/v1/auth', authLimiter);
 }
 
+// health / welcome (avoids scary 404 when opening http://localhost:PORT/)
+app.get('/', (_req, res) => {
+  res.status(httpStatus.OK).send({
+    message: 'Order Food API is running',
+    docs: config.env === 'development' ? '/v1/docs' : undefined,
+  });
+});
+
 // v1 api routes
 app.use('/v1', routes);
 

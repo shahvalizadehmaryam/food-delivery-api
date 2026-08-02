@@ -16,7 +16,17 @@ export const successHandler = morgan(successResponseFormat, {
 
 export const errorHandler = morgan(errorResponseFormat, {
   skip: (req, res) => res.statusCode < 400,
-  stream: { write: (message) => logger.error(message.trim()) }
+  stream: {
+    write: (message) => {
+      // Client errors (4xx) are often expected; reserve error level for 5xx
+      const isServerError = /\s5\d{2}\s/.test(message);
+      if (isServerError) {
+        logger.error(message.trim());
+      } else {
+        logger.warn(message.trim());
+      }
+    }
+  }
 });
 
 export default {

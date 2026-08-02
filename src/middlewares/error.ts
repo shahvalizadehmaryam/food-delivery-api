@@ -35,7 +35,12 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   };
 
   if (config.env === 'development') {
-    logger.error(err);
+    // 404s are expected for unknown paths — don't dump a full stack as if the app crashed
+    if (statusCode === httpStatus.NOT_FOUND) {
+      logger.warn(`${req.method} ${req.originalUrl} - ${message}`);
+    } else {
+      logger.error(err);
+    }
   }
 
   res.status(statusCode).send(response);
