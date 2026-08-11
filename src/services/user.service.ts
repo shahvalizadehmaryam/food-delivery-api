@@ -1,5 +1,5 @@
 import prisma from "../client";
-import { User, Prisma } from "@prisma/client";
+import { User, Prisma } from "../generated/prisma";
 
 const buildSelect = <K extends keyof User>(
   keys: K[],

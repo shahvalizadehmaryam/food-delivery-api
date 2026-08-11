@@ -1,7 +1,7 @@
 import httpStatus from 'http-status';
 import userService from './user.service';
 import ApiError from '../utils/ApiError';
-import { TokenType, User } from '@prisma/client';
+import { TokenType, User } from '../generated/prisma';
 import prisma from '../client';
 import { encryptPassword, isPasswordMatch } from '../utils/encryption';
 import exclude from '../utils/exclude';

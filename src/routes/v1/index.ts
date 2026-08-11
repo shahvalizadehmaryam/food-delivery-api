@@ -5,6 +5,7 @@ import adminUserRoute from "./admin.user.route.js";
 import docsRoute from "./docs.route.js";
 import config from "../../config/config.js";
 import menuRoute from "./menu.route.js";
+import basketRoute from "./basket.route.js";
 import flashDealRoute from "./flashDeal.route.js";
 import adminFlashDealRoute from "./admin.flashDeal.route.js";
 
@@ -26,6 +27,10 @@ const defaultRoutes = [
   {
     path: "/menu",
     route: menuRoute,
+  },
+  {
+    path: "/baskets",
+    route: basketRoute,
   },
   {
     path: "/flash-deals",

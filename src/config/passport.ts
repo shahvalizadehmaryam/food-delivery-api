@@ -5,7 +5,7 @@ import {
   VerifyCallback,
 } from "passport-jwt";
 import config from "./config";
-import { TokenType } from "@prisma/client";
+import { TokenType } from "../generated/prisma";
 
 const jwtOptions = {
   secretOrKey: config.jwt.secret,

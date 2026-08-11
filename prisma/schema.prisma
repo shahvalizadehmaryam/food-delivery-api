@@ -1,6 +1,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -20,6 +21,7 @@ model User {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   tokens    Token[]
+  baskets   Basket[]
 }
 
 model Otp {
@@ -70,6 +72,7 @@ model MenuItem {
   section     MenuSection    @relation(fields: [sectionId], references: [id])
   sizes       MenuItemSize[]
   flashDeals  FlashDeal[]
+  basketItems BasketItem[]
 }
 
 /// Time-limited discount for a menu item (optionally one size only).
@@ -101,4 +104,33 @@ model MenuItemSize {
   item          MenuItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
 
   @@id([itemId, id])
+}
+
+/// Guest basket: userId = null. Logged-in basket: userId set (one active basket per user).
+model Basket {
+  id        String       @id
+  userId    Int?         @unique
+  user      User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     BasketItem[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+model BasketItem {
+  id            Int      @id @default(autoincrement())
+  basketId      String
+  basket        Basket   @relation(fields: [basketId], references: [id], onDelete: Cascade)
+  productId     Int
+  menuItem      MenuItem @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sizeId        String
+  sizeLabel     String
+  title         String
+  price         Decimal  @db.Decimal(10, 2)
+  originalPrice Decimal  @db.Decimal(10, 2)
+  discountType  String?
+  discountValue Decimal?
+  quantity      Int      @default(1)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@unique([basketId, productId, sizeId])
+  @@index([basketId])
 }

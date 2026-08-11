@@ -1,5 +1,5 @@
 import httpStatus from "http-status";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../generated/prisma";
 import prisma from "../client";
 import ApiError from "../utils/ApiError";
 import { DiscountType, FlashDeal } from "../types/flashDeal";

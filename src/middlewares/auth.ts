@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express';
 import httpStatus from 'http-status';
 import passport from 'passport';
-import { Role } from '@prisma/client';
+import { Role } from '../generated/prisma';
 import ApiError from '../utils/ApiError';
 import { roleRights } from '../config/roles';
 

@@ -1,0 +1,285 @@
+# Basket API paths — loaded by src/routes/v1/docs.route.ts
+paths:
+  /baskets:
+    post:
+      summary: Create a guest basket
+      description: |
+        Creates an empty basket with `userId = null`.
+
+        Store the returned `basketId` in the client (e.g. localStorage).
+        **Public endpoint** — no login required.
+      tags:
+        - Basket
+      responses:
+        "201":
+          description: Guest basket created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Basket"
+              example:
+                basketId: basket-1730000000000-abc12
+                items: []
+
+  /baskets/me:
+    get:
+      summary: Get or create my basket (logged-in)
+      description: |
+        Returns the authenticated user's active basket.
+        If none exists yet, creates an empty one.
+      tags:
+        - Basket
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User basket
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Basket"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /baskets/me/items:
+    post:
+      summary: Add item to my basket (logged-in)
+      description: |
+        Adds a menu item size to the authenticated user's basket.
+
+        Send only `productId`, `sizeId`, and optional `quantity`.
+        The server resolves title, prices, and discounts from the menu / flash deals.
+        If the same product+size already exists, quantities are summed.
+      tags:
+        - Basket
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddBasketItemRequest"
+      responses:
+        "201":
+          description: Item added; full basket returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Basket"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Product not found
+
+  /baskets/me/items/{itemId}:
+    parameters:
+      - in: path
+        name: itemId
+        required: true
+        schema:
+          type: integer
+        description: BasketItem database id
+    patch:
+      summary: Update item quantity in my basket (logged-in)
+      tags:
+        - Basket
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBasketItemRequest"
+      responses:
+        "200":
+          description: Updated basket
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Basket"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Basket item not found
+    delete:
+      summary: Remove item from my basket (logged-in)
+      tags:
+        - Basket
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Basket after removal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Basket"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Basket item not found
+
+  /baskets/merge:
+    post:
+      summary: Merge guest basket into my basket (logged-in)
+      description: |
+        Call this right after successful `verify-otp` or `register`.
+
+        - Guest items are merged into the user basket
+        - Matching product+size quantities are summed
+        - The guest basket is deleted afterward
+
+        Then clear `basketId` from localStorage and use `/baskets/me`.
+      tags:
+        - Basket
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MergeBasketRequest"
+      responses:
+        "200":
+          description: Merged user basket
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Basket"
+        "400":
+          description: Not a guest basket / validation error
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /baskets/{basketId}:
+    parameters:
+      - in: path
+        name: basketId
+        required: true
+        schema:
+          type: string
+          example: basket-1730000000000-abc12
+    get:
+      summary: Get guest basket by id
+      description: **Public endpoint** — identify the basket with `basketId` from localStorage.
+      tags:
+        - Basket
+      responses:
+        "200":
+          description: Basket retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Basket"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /baskets/{basketId}/items:
+    parameters:
+      - in: path
+        name: basketId
+        required: true
+        schema:
+          type: string
+          example: basket-1730000000000-abc12
+    post:
+      summary: Add item to guest basket
+      description: |
+        Same pricing rules as logged-in add.
+        Server computes `price` / `originalPrice` / discounts — do not send prices from the client.
+      tags:
+        - Basket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddBasketItemRequest"
+            example:
+              productId: 42
+              sizeId: large
+              quantity: 1
+      responses:
+        "201":
+          description: Item added; full basket returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Basket"
+              example:
+                basketId: basket-1730000000000-abc12
+                items:
+                  - basketId: basket-1730000000000-abc12
+                    productId: 42
+                    title: Margherita Pizza
+                    sizeLabel: Large
+                    price: 12.99
+                    originalPrice: 14.99
+                    discountType: percentage
+                    discountValue: 13
+                    quantity: 1
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          description: Basket or product not found
+
+  /baskets/{basketId}/items/{itemId}:
+    parameters:
+      - in: path
+        name: basketId
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: itemId
+        required: true
+        schema:
+          type: integer
+        description: BasketItem database id
+    patch:
+      summary: Update item quantity in guest basket
+      tags:
+        - Basket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBasketItemRequest"
+            example:
+              quantity: 3
+      responses:
+        "200":
+          description: Updated basket
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Basket"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          description: Basket item not found
+    delete:
+      summary: Remove item from guest basket
+      tags:
+        - Basket
+      responses:
+        "200":
+          description: Basket after removal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Basket"
+        "404":
+          description: Basket item not found
+
+tags:
+  - name: Basket
+    description: Guest + logged-in shopping cart (merge after OTP/register)

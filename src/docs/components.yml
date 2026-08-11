@@ -550,6 +550,115 @@ components:
           items:
             $ref: "#/components/schemas/MenuItem"
 
+    BasketItem:
+      type: object
+      description: |
+        One line in the basket — matches the frontend cart item shape.
+        `price` is the final (discounted) price; `originalPrice` is the base size price.
+      required:
+        - basketId
+        - productId
+        - title
+        - sizeLabel
+        - price
+        - originalPrice
+        - quantity
+      properties:
+        basketId:
+          type: string
+          example: basket-1730000000000-abc12
+        productId:
+          type: integer
+          example: 42
+          description: MenuItem.id
+        title:
+          type: string
+          example: Margherita Pizza
+        sizeLabel:
+          type: string
+          example: Large
+          description: Display label (from MenuItemSize.label)
+        price:
+          type: number
+          format: float
+          example: 12.99
+          description: Final price after discount (snapshot at add time)
+        originalPrice:
+          type: number
+          format: float
+          example: 14.99
+          description: Base size price before discount
+        discountType:
+          type: string
+          enum:
+            - percentage
+            - fixed
+          example: percentage
+        discountValue:
+          type: number
+          format: float
+          example: 13
+        quantity:
+          type: integer
+          minimum: 1
+          example: 1
+        customizations:
+          nullable: true
+          description: Not modeled yet — omitted or null/undefined
+
+    Basket:
+      type: object
+      required:
+        - basketId
+        - items
+      properties:
+        basketId:
+          type: string
+          example: basket-1730000000000-abc12
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/BasketItem"
+
+    AddBasketItemRequest:
+      type: object
+      required:
+        - productId
+        - sizeId
+      properties:
+        productId:
+          type: integer
+          example: 42
+        sizeId:
+          type: string
+          example: large
+          description: MenuItemSize.id (e.g. small, medium, large)
+        quantity:
+          type: integer
+          minimum: 1
+          default: 1
+          example: 1
+
+    UpdateBasketItemRequest:
+      type: object
+      required:
+        - quantity
+      properties:
+        quantity:
+          type: integer
+          minimum: 1
+          example: 3
+
+    MergeBasketRequest:
+      type: object
+      required:
+        - guestBasketId
+      properties:
+        guestBasketId:
+          type: string
+          example: basket-1730000000000-abc12
+          description: Guest basket id from localStorage
+
   responses:
     BadRequest:
       description: Bad request
