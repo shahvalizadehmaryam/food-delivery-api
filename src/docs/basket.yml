@@ -168,7 +168,8 @@ paths:
           example: basket-1730000000000-abc12
     get:
       summary: Get guest basket by id
-      description: **Public endpoint** — identify the basket with `basketId` from localStorage.
+      description: |
+        Public endpoint — identify the basket with `basketId` from localStorage.
       tags:
         - Basket
       responses:
