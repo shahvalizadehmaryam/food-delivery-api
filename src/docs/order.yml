@@ -1,0 +1,222 @@
+# Order API paths — loaded by src/routes/v1/docs.route.ts
+paths:
+  /orders:
+    post:
+      summary: Place an order from my basket
+      description: |
+        Creates an order from the authenticated user's basket.
+
+        - Basket must not be empty
+        - Item titles and prices are snapshotted onto the order
+        - Delivery address comes from the body, or from the user profile
+        - Basket lines are cleared; the basket itself is kept
+        - New orders start as `PLACED` with `isValidOrder: true`
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlaceOrderRequest"
+            example:
+              note: No onions
+              deliveryAddress: 123 Main Street, Los Angeles, CA
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: Empty basket, missing address, or validation error
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /orders/me:
+    get:
+      summary: List my orders
+      description: |
+        Returns the authenticated user's valid orders (`isValidOrder: true`), newest first.
+        Optionally filter with `?status=PLACED`.
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+            enum:
+              - PLACED
+              - PREPARING
+              - OUT_FOR_DELIVERY
+              - DELIVERED
+              - CANCELED
+      responses:
+        "200":
+          description: My orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /orders/me/{orderId}:
+    parameters:
+      - in: path
+        name: orderId
+        required: true
+        schema:
+          type: integer
+          example: 1
+    get:
+      summary: Get one of my orders
+      description: Returns 404 if the order is missing, belongs to another user, or was soft-deleted.
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Order details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /orders/me/{orderId}/cancel:
+    parameters:
+      - in: path
+        name: orderId
+        required: true
+        schema:
+          type: integer
+          example: 1
+    patch:
+      summary: Cancel my order
+      description: |
+        Allowed only while status is `PLACED`.
+
+        The row is not deleted. Status becomes `CANCELED` and `isValidOrder` becomes `false`.
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Order canceled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: Order cannot be canceled (already preparing or later)
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /admin/orders:
+    get:
+      summary: List all orders (admin)
+      description: |
+        Kitchen/admin view. Includes canceled / soft-deleted orders.
+        Optionally filter with `?status=PREPARING`.
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+            enum:
+              - PLACED
+              - PREPARING
+              - OUT_FOR_DELIVERY
+              - DELIVERED
+              - CANCELED
+      responses:
+        "200":
+          description: All orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/orders/{orderId}/status:
+    parameters:
+      - in: path
+        name: orderId
+        required: true
+        schema:
+          type: integer
+          example: 1
+    patch:
+      summary: Update order status (admin)
+      description: |
+        Allowed transitions:
+
+        - `PLACED` → `PREPARING` or `CANCELED`
+        - `PREPARING` → `OUT_FOR_DELIVERY`
+        - `OUT_FOR_DELIVERY` → `DELIVERED`
+
+        Skipping a step returns 400. Canceling sets `isValidOrder` to false.
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrderStatusRequest"
+            example:
+              status: PREPARING
+      responses:
+        "200":
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: Invalid status transition
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+tags:
+  - name: Orders
+    description: Place, list, cancel, and admin status updates

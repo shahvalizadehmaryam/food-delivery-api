@@ -659,6 +659,125 @@ components:
           example: basket-1730000000000-abc12
           description: Guest basket id from localStorage
 
+    OrderItem:
+      type: object
+      description: Snapshot of a basket line at checkout. Prices do not change if the menu is updated later.
+      required:
+        - productId
+        - title
+        - sizeId
+        - sizeLabel
+        - price
+        - originalPrice
+        - quantity
+      properties:
+        productId:
+          type: integer
+          example: 42
+          description: MenuItem.id at checkout time
+        title:
+          type: string
+          example: Margherita Pizza
+        sizeId:
+          type: string
+          example: large
+        sizeLabel:
+          type: string
+          example: Large
+        price:
+          type: number
+          format: float
+          example: 12.99
+          description: Final unit price after discount
+        originalPrice:
+          type: number
+          format: float
+          example: 14.99
+          description: Base size price before discount
+        quantity:
+          type: integer
+          minimum: 1
+          example: 2
+
+    Order:
+      type: object
+      required:
+        - id
+        - status
+        - items
+        - subtotal
+        - deliveryAddress
+        - isValidOrder
+        - placedAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          example: 1
+        status:
+          type: string
+          enum:
+            - PLACED
+            - PREPARING
+            - OUT_FOR_DELIVERY
+            - DELIVERED
+            - CANCELED
+          example: PLACED
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        subtotal:
+          type: number
+          format: float
+          example: 25.98
+        deliveryAddress:
+          type: string
+          example: 123 Main Street, Los Angeles, CA
+        note:
+          type: string
+          nullable: true
+          example: No onions
+        isValidOrder:
+          type: boolean
+          example: true
+          description: Soft-delete flag. Canceled orders are set to false.
+        placedAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PlaceOrderRequest:
+      type: object
+      properties:
+        note:
+          type: string
+          maxLength: 500
+          nullable: true
+          example: No onions
+        deliveryAddress:
+          type: string
+          minLength: 5
+          maxLength: 500
+          example: 123 Main Street, Los Angeles, CA
+          description: Optional. Falls back to the user's profile address.
+
+    UpdateOrderStatusRequest:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - PREPARING
+            - OUT_FOR_DELIVERY
+            - DELIVERED
+            - CANCELED
+          example: PREPARING
+
   responses:
     BadRequest:
       description: Bad request

@@ -8,6 +8,8 @@ import menuRoute from "./menu.route.js";
 import basketRoute from "./basket.route.js";
 import flashDealRoute from "./flashDeal.route.js";
 import adminFlashDealRoute from "./admin.flashDeal.route.js";
+import orderRoute from "./order.route.js";
+import adminOrderRoute from "./admin.order.route.js";
 
 const router = express.Router();
 
@@ -39,6 +41,14 @@ const defaultRoutes = [
   {
     path: "/admin/flash-deals",
     route: adminFlashDealRoute,
+  },
+  {
+    path: "/orders",
+    route: orderRoute,
+  },
+  {
+    path: "/admin/orders",
+    route: adminOrderRoute,
   },
 ];
 
