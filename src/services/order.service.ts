@@ -1,5 +1,5 @@
 import httpStatus from "http-status";
-import { OrderStatus, Prisma } from "../generated/prisma";
+import { OrderStatus, PaymentStatus, Prisma } from "../generated/prisma";
 import prisma from "../client";
 import ApiError from "../utils/ApiError";
 import { OrderItemResponse, OrderResponse } from "../types/order";
@@ -12,6 +12,7 @@ type PlaceOrderInput = {
 };
 
 const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  [OrderStatus.PENDING_PAYMENT]: [OrderStatus.CANCELED],
   [OrderStatus.PLACED]: [OrderStatus.PREPARING, OrderStatus.CANCELED],
   [OrderStatus.PREPARING]: [OrderStatus.OUT_FOR_DELIVERY],
   [OrderStatus.OUT_FOR_DELIVERY]: [OrderStatus.DELIVERED],
@@ -28,6 +29,9 @@ const toOrderResponse = (order: OrderWithItems): OrderResponse => ({
   deliveryAddress: order.deliveryAddress,
   note: order.note,
   isValidOrder: order.isValidOrder,
+  paymentStatus: order.paymentStatus,
+  stripeCheckoutSessionId: order.stripeCheckoutSessionId,
+  paidAt: order.paidAt,
   placedAt: order.placedAt,
   updatedAt: order.updatedAt,
   items: order.items.map(
@@ -85,6 +89,8 @@ const placeOrder = async (
         deliveryAddress,
         note: input.note || null,
         isValidOrder: true,
+        paymentStatus: PaymentStatus.PAID,
+        paidAt: new Date(),
         items: {
           create: basket.items.map((item) => ({
             productId: item.productId,
@@ -156,7 +162,10 @@ const cancelMyOrder = async (
     throw new ApiError(httpStatus.NOT_FOUND, "Order not found");
   }
 
-  if (order.status !== OrderStatus.PLACED) {
+  if (
+    order.status !== OrderStatus.PLACED &&
+    order.status !== OrderStatus.PENDING_PAYMENT
+  ) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Order cannot be canceled");
   }
 

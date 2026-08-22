@@ -195,6 +195,32 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /auth/refresh-tokens:
+    post:
+      summary: Refresh auth tokens
+      description: |
+        Exchanges a still-valid refresh token for a new access + refresh pair.
+        The previous refresh token is deleted and cannot be reused.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokensRequest"
+      responses:
+        "200":
+          description: New tokens issued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthTokens"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
 tags:
   - name: Auth
     description: Phone OTP authentication

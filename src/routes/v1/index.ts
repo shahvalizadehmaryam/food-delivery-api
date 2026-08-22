@@ -10,6 +10,7 @@ import flashDealRoute from "./flashDeal.route.js";
 import adminFlashDealRoute from "./admin.flashDeal.route.js";
 import orderRoute from "./order.route.js";
 import adminOrderRoute from "./admin.order.route.js";
+import paymentRoute from "./payment.route.js";
 
 const router = express.Router();
 
@@ -49,6 +50,10 @@ const defaultRoutes = [
   {
     path: "/admin/orders",
     route: adminOrderRoute,
+  },
+  {
+    path: "/payments",
+    route: paymentRoute,
   },
 ];
 

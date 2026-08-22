@@ -137,6 +137,7 @@ model BasketItem {
 }
 
 enum OrderStatus{
+  PENDING_PAYMENT
   PLACED
   PREPARING
   OUT_FOR_DELIVERY
@@ -144,21 +145,33 @@ enum OrderStatus{
   CANCELED
 }
 
+enum PaymentStatus {
+  UNPAID
+  PAID
+  FAILED
+  REFUNDED
+}
+
 model Order {
-  id              Int           @id @default(autoincrement())
-  userId          Int
-  user            User          @relation(fields: [userId], references: [id])
-  status          OrderStatus   @default(PLACED)
-  items           OrderItem[]
-  subtotal        Decimal       @db.Decimal(10, 2)
-  deliveryAddress String
-  note            String?
-  isValidOrder    Boolean       @default(true)
-  placedAt        DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  cancelledAt     DateTime?
+  id                        Int           @id @default(autoincrement())
+  userId                    Int
+  user                      User          @relation(fields: [userId], references: [id])
+  status                    OrderStatus   @default(PLACED)
+  items                     OrderItem[]
+  subtotal                  Decimal       @db.Decimal(10, 2)
+  deliveryAddress           String
+  note                      String?
+  isValidOrder              Boolean       @default(true)
+  paymentStatus             PaymentStatus @default(UNPAID)
+  stripeCheckoutSessionId   String?       @unique
+  stripePaymentIntentId     String?
+  paidAt                    DateTime?
+  placedAt                  DateTime      @default(now())
+  updatedAt                 DateTime      @updatedAt
+  cancelledAt               DateTime?
   @@index([userId, placedAt])
   @@index([status])
+  @@index([paymentStatus])
 }
 
 model OrderItem {

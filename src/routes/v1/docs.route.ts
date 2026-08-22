@@ -15,6 +15,7 @@ const swaggerSpec = swaggerJsdoc({
     path.join(process.cwd(), 'src/docs/basket.yml'),
     path.join(process.cwd(), 'src/docs/flashDeal.yml'),
     path.join(process.cwd(), 'src/docs/order.yml'),
+    path.join(process.cwd(), 'src/docs/payment.yml'),
     path.join(process.cwd(), 'src/docs/components.yml'),
   ],
 });

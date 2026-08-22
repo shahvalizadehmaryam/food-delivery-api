@@ -2,6 +2,8 @@ import { DiscountType } from "./flashDeal";
 
 /** One line in the basket — matches frontend shape */
 export type BasketItemResponse = {
+  /** Database id — needed for PATCH/DELETE /items/{itemId} */
+  id: number;
   basketId: string;
   productId: number;
   title: string;

@@ -128,9 +128,16 @@ const logout = {
   }),
 };
 
+const refreshTokens = {
+  body: Joi.object().keys({
+    refreshToken: Joi.string().required(),
+  }),
+};
+
 export default {
   sendOtp,
   verifyOtp,
   register,
   logout,
+  refreshTokens,
 };

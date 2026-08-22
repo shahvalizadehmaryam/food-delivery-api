@@ -141,10 +141,36 @@ const logout = async (refreshToken: string) => {
   });
 };
 
+/**
+ * Swap a still-valid refresh token for a new access + refresh pair.
+ * The old refresh token is deleted so it cannot be reused.
+ */
+const refreshAuth = async (
+  refreshToken: string,
+): Promise<AuthTokensResponse> => {
+  try {
+    const refreshTokenDoc = await verifyToken(refreshToken, TokenType.REFRESH);
+    const user = await prisma.user.findUnique({
+      where: { id: refreshTokenDoc.userId },
+      select: { id: true, isBlocked: true },
+    });
+
+    if (!user || user.isBlocked) {
+      throw new Error("User not found");
+    }
+
+    await prisma.token.delete({ where: { id: refreshTokenDoc.id } });
+    return generateAuthTokens(user);
+  } catch {
+    throw new ApiError(httpStatus.UNAUTHORIZED, "Please authenticate");
+  }
+};
+
 export default {
   generateToken,
   saveToken,
   verifyToken,
   generateAuthTokens,
   logout,
+  refreshAuth,
 };

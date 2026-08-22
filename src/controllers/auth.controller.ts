@@ -88,4 +88,10 @@ const logout = catchAsync(async (req, res) => {
   res.status(204).send(); // 204 = success, no content
 });
 
-export default { sendOtp, verifyOtp, register, logout };
+const refreshTokens = catchAsync(async (req, res) => {
+  const { refreshToken } = req.body;
+  const tokens = await tokenService.refreshAuth(refreshToken);
+  res.send(tokens);
+});
+
+export default { sendOtp, verifyOtp, register, logout, refreshTokens };

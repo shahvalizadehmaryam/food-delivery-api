@@ -25,7 +25,27 @@ const envVarsSchema = Joi.object()
     SMTP_PORT: Joi.number().description('port to connect to the email server'),
     SMTP_USERNAME: Joi.string().description('username for email server'),
     SMTP_PASSWORD: Joi.string().description('password for email server'),
-    EMAIL_FROM: Joi.string().description('the from field in the emails sent by the app')
+    EMAIL_FROM: Joi.string().description('the from field in the emails sent by the app'),
+    STRIPE_SECRET_KEY: Joi.string()
+      .optional()
+      .allow('')
+      .description('Stripe secret key (sk_test_...)'),
+    STRIPE_WEBHOOK_SECRET: Joi.string()
+      .optional()
+      .allow('')
+      .description('Stripe webhook signing secret (whsec_...)'),
+    STRIPE_SUCCESS_URL: Joi.string()
+      .optional()
+      .allow('')
+      .description('Frontend URL after successful Stripe Checkout'),
+    STRIPE_CANCEL_URL: Joi.string()
+      .optional()
+      .allow('')
+      .description('Frontend URL after canceled Stripe Checkout'),
+    STRIPE_CURRENCY: Joi.string()
+      .optional()
+      .default('usd')
+      .description('Stripe charge currency')
   })
   .unknown();
 
@@ -57,5 +77,12 @@ export default {
       }
     },
     from: envVars.EMAIL_FROM
+  },
+  stripe: {
+    secretKey: envVars.STRIPE_SECRET_KEY,
+    webhookSecret: envVars.STRIPE_WEBHOOK_SECRET,
+    successUrl: envVars.STRIPE_SUCCESS_URL,
+    cancelUrl: envVars.STRIPE_CANCEL_URL,
+    currency: envVars.STRIPE_CURRENCY
   }
 };

@@ -1,0 +1,78 @@
+# Payment API paths — loaded by src/routes/v1/docs.route.ts
+paths:
+  /payments/checkout:
+    post:
+      summary: Start Stripe Checkout from my basket
+      description: |
+        Creates a `PENDING_PAYMENT` order from the authenticated user's basket
+        and a Stripe Checkout Session.
+
+        - Basket must not be empty
+        - Amount is calculated on the server from basket prices
+        - Basket is **not** cleared until Stripe confirms payment via webhook
+        - Previous unpaid checkout sessions for this user are expired
+        - Redirect the browser to the returned `url`
+      tags:
+        - Payments
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlaceOrderRequest"
+            example:
+              note: No onions
+              deliveryAddress: 123 Main Street, Los Angeles, CA
+      responses:
+        "201":
+          description: Checkout session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckoutSession"
+        "400":
+          description: Empty basket, missing address, or Stripe error
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "503":
+          description: Stripe keys or redirect URLs are missing
+
+  /payments/webhook:
+    post:
+      summary: Stripe webhook
+      description: |
+        Called by Stripe, not by the app.
+
+        Verifies the Stripe signature, then:
+
+        - `checkout.session.completed` → order becomes `PLACED` + `PAID`, basket is cleared
+        - `checkout.session.expired` → order becomes `CANCELED` + `FAILED`
+
+        This route must receive the raw JSON body.
+      tags:
+        - Payments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Event received
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  received:
+                    type: boolean
+                    example: true
+        "400":
+          description: Missing or invalid Stripe signature
+
+tags:
+  - name: Payments
+    description: Stripe Checkout and payment webhooks

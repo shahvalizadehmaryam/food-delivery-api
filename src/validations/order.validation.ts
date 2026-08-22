@@ -19,6 +19,7 @@ const cancelMyOrder = {
 const listMyOrders = {
   query: Joi.object().keys({
     status: Joi.string().valid(
+      "PENDING_PAYMENT",
       "PLACED",
       "PREPARING",
       "OUT_FOR_DELIVERY",

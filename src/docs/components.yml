@@ -290,6 +290,15 @@ components:
           type: string
           description: Paste `tokens.refresh.token` from the verify-otp **Response body** after Execute. Leave empty until you have a real token.
 
+    RefreshTokensRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          description: Paste `tokens.refresh.token` from the verify-otp **Response body** after Execute.
+
     UpdateMyProfileRequest:
       type: object
       properties:
@@ -556,6 +565,7 @@ components:
         One line in the basket — matches the frontend cart item shape.
         `price` is the final (discounted) price; `originalPrice` is the base size price.
       required:
+        - id
         - basketId
         - productId
         - title
@@ -564,6 +574,10 @@ components:
         - originalPrice
         - quantity
       properties:
+        id:
+          type: integer
+          example: 17
+          description: BasketItem database id — use this in PATCH/DELETE /items/{itemId}
         basketId:
           type: string
           example: basket-1730000000000-abc12
@@ -708,6 +722,7 @@ components:
         - subtotal
         - deliveryAddress
         - isValidOrder
+        - paymentStatus
         - placedAt
         - updatedAt
       properties:
@@ -717,6 +732,7 @@ components:
         status:
           type: string
           enum:
+            - PENDING_PAYMENT
             - PLACED
             - PREPARING
             - OUT_FOR_DELIVERY
@@ -742,6 +758,22 @@ components:
           type: boolean
           example: true
           description: Soft-delete flag. Canceled orders are set to false.
+        paymentStatus:
+          type: string
+          enum:
+            - UNPAID
+            - PAID
+            - FAILED
+            - REFUNDED
+          example: PAID
+        stripeCheckoutSessionId:
+          type: string
+          nullable: true
+          example: cs_test_a1b2c3
+        paidAt:
+          type: string
+          format: date-time
+          nullable: true
         placedAt:
           type: string
           format: date-time
@@ -763,6 +795,20 @@ components:
           maxLength: 500
           example: 123 Main Street, Los Angeles, CA
           description: Optional. Falls back to the user's profile address.
+
+    CheckoutSession:
+      type: object
+      required:
+        - orderId
+        - url
+      properties:
+        orderId:
+          type: integer
+          example: 12
+        url:
+          type: string
+          format: uri
+          example: https://checkout.stripe.com/c/pay/cs_test_a1b2c3
 
     UpdateOrderStatusRequest:
       type: object

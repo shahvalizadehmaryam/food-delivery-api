@@ -11,6 +11,7 @@ import {
 } from "../types/basket";
 
 type BasketItemRow = {
+  id: number;
   basketId: string;
   productId: number;
   title: string;
@@ -29,6 +30,7 @@ const createBasketId = () =>
 
 const mapItem = (row: BasketItemRow): BasketItemResponse => {
   const item: BasketItemResponse = {
+    id: row.id,
     basketId: row.basketId,
     productId: row.productId,
     title: row.title,

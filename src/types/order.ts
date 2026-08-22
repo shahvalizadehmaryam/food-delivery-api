@@ -16,6 +16,9 @@ export type OrderResponse = {
   deliveryAddress: string;
   note?: string | null;
   isValidOrder: boolean;
+  paymentStatus: string;
+  stripeCheckoutSessionId?: string | null;
+  paidAt?: Date | null;
   placedAt: Date;
   updatedAt: Date;
 };

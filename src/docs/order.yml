@@ -10,7 +10,8 @@ paths:
         - Item titles and prices are snapshotted onto the order
         - Delivery address comes from the body, or from the user profile
         - Basket lines are cleared; the basket itself is kept
-        - New orders start as `PLACED` with `isValidOrder: true`
+        - New orders start as `PLACED` with `paymentStatus: PAID` and `isValidOrder: true`
+        - This endpoint is the no-Stripe / already-paid path. Stripe checkout is a separate flow.
       tags:
         - Orders
       security:
@@ -53,6 +54,7 @@ paths:
           schema:
             type: string
             enum:
+              - PENDING_PAYMENT
               - PLACED
               - PREPARING
               - OUT_FOR_DELIVERY
@@ -112,7 +114,7 @@ paths:
     patch:
       summary: Cancel my order
       description: |
-        Allowed only while status is `PLACED`.
+        Allowed only while status is `PLACED` or `PENDING_PAYMENT`.
 
         The row is not deleted. Status becomes `CANCELED` and `isValidOrder` becomes `false`.
       tags:
@@ -150,6 +152,7 @@ paths:
           schema:
             type: string
             enum:
+              - PENDING_PAYMENT
               - PLACED
               - PREPARING
               - OUT_FOR_DELIVERY
@@ -184,10 +187,12 @@ paths:
       description: |
         Allowed transitions:
 
+        - `PENDING_PAYMENT` → `CANCELED`
         - `PLACED` → `PREPARING` or `CANCELED`
         - `PREPARING` → `OUT_FOR_DELIVERY`
         - `OUT_FOR_DELIVERY` → `DELIVERED`
 
+        Unpaid Stripe orders stay in `PENDING_PAYMENT` until the webhook marks them `PLACED`.
         Skipping a step returns 400. Canceling sets `isValidOrder` to false.
       tags:
         - Orders

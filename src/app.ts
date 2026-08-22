@@ -12,6 +12,7 @@ import { authLimiter } from './middlewares/rateLimiter';
 import routes from './routes/v1/index.js';
 import { errorConverter, errorHandler } from './middlewares/error';
 import ApiError from './utils/ApiError';
+import paymentController from './controllers/payment.controller';
 
 const app = express();
 
@@ -27,6 +28,13 @@ app.use(
       ? { contentSecurityPolicy: false }
       : {}
   )
+);
+
+// Stripe webhook needs the raw body for signature verification.
+app.post(
+  '/v1/payments/webhook',
+  express.raw({ type: 'application/json' }),
+  paymentController.handleWebhook
 );
 
 // parse json request body
