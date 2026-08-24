@@ -766,10 +766,23 @@ components:
             - FAILED
             - REFUNDED
           example: PAID
+        paymentMethod:
+          type: string
+          enum:
+            - STRIPE
+            - COINGATE
+          example: COINGATE
+          description: "STRIPE = card. COINGATE = crypto."
         stripeCheckoutSessionId:
           type: string
           nullable: true
           example: cs_test_a1b2c3
+          description: Stripe Checkout Session id. Null for CoinGate orders.
+        coinGateOrderId:
+          type: string
+          nullable: true
+          example: "442566"
+          description: CoinGate invoice id. Null for Stripe orders.
         paidAt:
           type: string
           format: date-time
@@ -796,11 +809,35 @@ components:
           example: 123 Main Street, Los Angeles, CA
           description: Optional. Falls back to the user's profile address.
 
+    CheckoutRequest:
+      type: object
+      properties:
+        note:
+          type: string
+          maxLength: 500
+          nullable: true
+          example: No onions
+        deliveryAddress:
+          type: string
+          minLength: 5
+          maxLength: 500
+          example: 123 Main Street, Los Angeles, CA
+          description: Optional. Falls back to the user's profile address.
+        method:
+          type: string
+          enum:
+            - card
+            - crypto
+          default: card
+          example: crypto
+          description: "card = Stripe. crypto = CoinGate. If omitted, defaults to card."
+
     CheckoutSession:
       type: object
       required:
         - orderId
         - url
+        - method
       properties:
         orderId:
           type: integer
@@ -808,7 +845,13 @@ components:
         url:
           type: string
           format: uri
-          example: https://checkout.stripe.com/c/pay/cs_test_a1b2c3
+          example: https://sandbox.coingate.com/invoice/abc123
+        method:
+          type: string
+          enum:
+            - card
+            - crypto
+          example: crypto
 
     UpdateOrderStatusRequest:
       type: object

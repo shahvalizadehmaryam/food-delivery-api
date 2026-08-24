@@ -17,7 +17,9 @@ export type OrderResponse = {
   note?: string | null;
   isValidOrder: boolean;
   paymentStatus: string;
+  paymentMethod?: string;
   stripeCheckoutSessionId?: string | null;
+  coinGateOrderId?: string | null;
   paidAt?: Date | null;
   placedAt: Date;
   updatedAt: Date;

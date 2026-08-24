@@ -45,7 +45,32 @@ const envVarsSchema = Joi.object()
     STRIPE_CURRENCY: Joi.string()
       .optional()
       .default('usd')
-      .description('Stripe charge currency')
+      .description('Stripe charge currency'),
+    COINGATE_API_TOKEN: Joi.string()
+      .optional()
+      .allow('')
+      .description('CoinGate API token'),
+    COINGATE_API_URL: Joi.string()
+      .optional()
+      .allow('')
+      .default('https://api-sandbox.coingate.com/v2')
+      .description('CoinGate API base URL (sandbox or live)'),
+    COINGATE_CALLBACK_URL: Joi.string()
+      .optional()
+      .allow('')
+      .description('Public URL CoinGate will POST payment callbacks to'),
+    COINGATE_SUCCESS_URL: Joi.string()
+      .optional()
+      .allow('')
+      .description('Frontend URL after successful CoinGate payment'),
+    COINGATE_CANCEL_URL: Joi.string()
+      .optional()
+      .allow('')
+      .description('Frontend URL after canceled CoinGate payment'),
+    COINGATE_RECEIVE_CURRENCY: Joi.string()
+      .optional()
+      .default('USD')
+      .description('Settlement currency for CoinGate payouts')
   })
   .unknown();
 
@@ -84,5 +109,13 @@ export default {
     successUrl: envVars.STRIPE_SUCCESS_URL,
     cancelUrl: envVars.STRIPE_CANCEL_URL,
     currency: envVars.STRIPE_CURRENCY
+  },
+  coingate: {
+    apiToken: envVars.COINGATE_API_TOKEN,
+    apiUrl: envVars.COINGATE_API_URL,
+    callbackUrl: envVars.COINGATE_CALLBACK_URL,
+    successUrl: envVars.COINGATE_SUCCESS_URL,
+    cancelUrl: envVars.COINGATE_CANCEL_URL,
+    receiveCurrency: envVars.COINGATE_RECEIVE_CURRENCY
   }
 };

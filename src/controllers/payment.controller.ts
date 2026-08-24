@@ -7,10 +7,12 @@ const createCheckoutSession = catchAsync(async (req, res) => {
   const session = await paymentService.createCheckoutSession(userId, {
     note: req.body.note,
     deliveryAddress: req.body.deliveryAddress,
+    method: req.body.method,
   });
   res.status(httpStatus.CREATED).send(session);
 });
 
+// Stripe این روت را صدا می‌زند، نه کاربر. بدون JWT.
 const handleWebhook = catchAsync(async (req, res) => {
   const signature = req.headers["stripe-signature"];
   if (!signature || Array.isArray(signature)) {
@@ -23,7 +25,15 @@ const handleWebhook = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send({ received: true });
 });
 
+// CoinGate این روت را صدا می‌زند، نه کاربر. بدون JWT.
+// اعتبارسنجی با token داخل body است، نه هدر Stripe.
+const handleCoinGateWebhook = catchAsync(async (req, res) => {
+  await paymentService.handleCoinGateCallback(req.body);
+  res.status(httpStatus.OK).send({ received: true });
+});
+
 export default {
   createCheckoutSession,
   handleWebhook,
+  handleCoinGateWebhook,
 };

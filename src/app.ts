@@ -43,6 +43,13 @@ app.use(express.json());
 // parse urlencoded request body
 app.use(express.urlencoded({ extended: true }));
 
+// CoinGate JSON می‌فرستد و HMAC ندارد؛ باید بعد از express.json باشد.
+// auth نگذار؛ CoinGate توکن JWT کاربر را ندارد.
+app.post(
+  '/v1/payments/coingate/webhook',
+  paymentController.handleCoinGateWebhook
+);
+
 // sanitize request data
 app.use(xss());
 

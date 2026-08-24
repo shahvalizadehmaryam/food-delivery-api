@@ -1,15 +1,22 @@
 import httpStatus from "http-status";
 import Stripe from "stripe";
-import { OrderStatus, PaymentStatus, Prisma } from "../generated/prisma";
+import {
+  OrderStatus,
+  PaymentStatus,
+  Prisma,
+  PaymentMethod,
+} from "../generated/prisma";
 import prisma from "../client";
 import config from "../config/config";
 import logger from "../config/logger";
 import ApiError from "../utils/ApiError";
+import { randomBytes, timingSafeEqual } from "crypto";
 import { CheckoutSessionResponse } from "../types/payment";
 
 type CheckoutInput = {
   note?: string | null;
   deliveryAddress?: string;
+  method?: "card" | "crypto";
 };
 
 const toNumber = (value: Prisma.Decimal | number) => Number(value);
@@ -27,8 +34,86 @@ const getStripe = () => {
   return new Stripe(config.stripe.secretKey);
 };
 
+const getCoinGateConfig = () => {
+  if (
+    !config.coingate.apiToken ||
+    !config.coingate.apiUrl ||
+    !config.coingate.callbackUrl ||
+    !config.coingate.successUrl ||
+    !config.coingate.cancelUrl
+  ) {
+    throw new ApiError(
+      httpStatus.SERVICE_UNAVAILABLE,
+      "CoinGate is not configured",
+    );
+  }
+  return config.coingate;
+};
+
+const createCoinGateInvoice = async (order: {
+  id: number;
+  subtotal: Prisma.Decimal | number;
+  items: Array<{ title: string; sizeLabel: string; quantity: number }>;
+}) => {
+  const coingate = getCoinGateConfig();
+  // این token بعداً در webhook با مقدار برگشتی CoinGate مقایسه می‌شود.
+  const callbackToken = randomBytes(32).toString("hex");
+
+  const description = order.items
+    .map((item) => `${item.quantity} x ${item.title} (${item.sizeLabel})`)
+    .join(", ")
+    .slice(0, 500);
+
+  const response = await fetch(`${coingate.apiUrl}/orders`, {
+    method: "POST",
+    headers: {
+      Authorization: `Token ${coingate.apiToken}`,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({
+      order_id: String(order.id),
+      price_amount: Number(order.subtotal),
+      price_currency: "USD",
+      receive_currency: coingate.receiveCurrency || "USD",
+      title: `Order #${order.id}`,
+      description: description.length >= 3 ? description : `Order #${order.id}`,
+      callback_url: coingate.callbackUrl,
+      success_url: coingate.successUrl.includes("?")
+        ? `${coingate.successUrl}&orderId=${order.id}`
+        : `${coingate.successUrl}?orderId=${order.id}`,
+      cancel_url: coingate.cancelUrl,
+      token: callbackToken,
+    }),
+  });
+
+  const data = (await response.json()) as {
+    id?: number | string;
+    payment_url?: string;
+    message?: string;
+  };
+
+  if (!response.ok || !data.id || !data.payment_url) {
+    throw new ApiError(
+      httpStatus.BAD_GATEWAY,
+      typeof data.message === "string"
+        ? data.message
+        : "CoinGate did not return a payment URL",
+    );
+  }
+
+  await prisma.order.update({
+    where: { id: order.id },
+    data: {
+      coinGateOrderId: String(data.id),
+      coinGateCallbackToken: callbackToken,
+    },
+  });
+
+  return data.payment_url;
+};
+
 const expireOpenCheckouts = async (userId: number) => {
-  const stripe = getStripe();
   const openOrders = await prisma.order.findMany({
     where: {
       userId,
@@ -40,6 +125,7 @@ const expireOpenCheckouts = async (userId: number) => {
   for (const order of openOrders) {
     if (order.stripeCheckoutSessionId) {
       try {
+        const stripe = getStripe();
         await stripe.checkout.sessions.expire(order.stripeCheckoutSessionId);
       } catch (error) {
         logger.warn(
@@ -66,13 +152,6 @@ const createCheckoutSession = async (
   userId: number,
   input: CheckoutInput,
 ): Promise<CheckoutSessionResponse> => {
-  if (!config.stripe.successUrl || !config.stripe.cancelUrl) {
-    throw new ApiError(
-      httpStatus.SERVICE_UNAVAILABLE,
-      "Stripe success/cancel URLs are not configured",
-    );
-  }
-
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { id: true, address: true },
@@ -113,6 +192,10 @@ const createCheckoutSession = async (
       note: input.note || null,
       isValidOrder: true,
       paymentStatus: PaymentStatus.UNPAID,
+      paymentMethod:
+        input.method === "crypto"
+          ? PaymentMethod.COINGATE
+          : PaymentMethod.STRIPE,
       items: {
         create: basket.items.map((item) => ({
           productId: item.productId,
@@ -127,6 +210,48 @@ const createCheckoutSession = async (
     },
     include: { items: true },
   });
+
+  if (input.method === "crypto") {
+    try {
+      const url = await createCoinGateInvoice(order);
+      return {
+        orderId: order.id,
+        url,
+        method: "crypto",
+      };
+    } catch (error) {
+      await prisma.order.update({
+        where: { id: order.id },
+        data: {
+          status: OrderStatus.CANCELED,
+          paymentStatus: PaymentStatus.FAILED,
+          isValidOrder: false,
+          cancelledAt: new Date(),
+        },
+      });
+
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw error;
+    }
+  }
+
+  if (!config.stripe.successUrl || !config.stripe.cancelUrl) {
+    await prisma.order.update({
+      where: { id: order.id },
+      data: {
+        status: OrderStatus.CANCELED,
+        paymentStatus: PaymentStatus.FAILED,
+        isValidOrder: false,
+        cancelledAt: new Date(),
+      },
+    });
+    throw new ApiError(
+      httpStatus.SERVICE_UNAVAILABLE,
+      "Stripe success/cancel URLs are not configured",
+    );
+  }
 
   const stripe = getStripe();
 
@@ -169,6 +294,7 @@ const createCheckoutSession = async (
     return {
       orderId: order.id,
       url: session.url,
+      method: "card",
     };
   } catch (error) {
     await prisma.order.update({
@@ -209,7 +335,9 @@ const markOrderPaid = async (session: Stripe.Checkout.Session) => {
       ? {
           OR: [
             { stripeCheckoutSessionId: session.id },
-            ...(Number.isInteger(orderId) && orderId > 0 ? [{ id: orderId }] : []),
+            ...(Number.isInteger(orderId) && orderId > 0
+              ? [{ id: orderId }]
+              : []),
           ],
         }
       : Number.isInteger(orderId) && orderId > 0
@@ -310,8 +438,111 @@ const constructWebhookEvent = (payload: Buffer | string, signature: string) => {
   }
 };
 
+// مقایسه امن توکن callback با مقدار ذخیره‌شده در دیتابیس.
+// === معمولی برای رمز مناسب نیست؛ timingSafeEqual زمان مقایسه را ثابت نگه می‌دارد.
+const tokensMatch = (stored: string, received: string) => {
+  const a = Buffer.from(stored);
+  const b = Buffer.from(received);
+  if (a.length !== b.length) {
+    return false;
+  }
+  return timingSafeEqual(a, b);
+};
+
+// فیلدهایی که CoinGate در POST به callback_url می‌فرستد.
+type CoinGateCallback = {
+  id?: number | string;
+  order_id?: string;
+  status?: string;
+  token?: string;
+  price_amount?: string | number;
+  price_currency?: string;
+};
+
+// منبع حقیقت پرداخت کریپتو: پیام سرور CoinGate، نه برگشت کاربر به success_url.
+const handleCoinGateCallback = async (payload: CoinGateCallback) => {
+  const receivedToken = payload.token;
+  if (!receivedToken) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Missing CoinGate token");
+  }
+
+  // سفارش را با شناسه CoinGate یا order_id خودمان پیدا کن.
+  const orderId = Number(payload.order_id);
+  const order = await prisma.order.findFirst({
+    where: {
+      paymentMethod: PaymentMethod.COINGATE,
+      OR: [
+        ...(payload.id ? [{ coinGateOrderId: String(payload.id) }] : []),
+        ...(Number.isInteger(orderId) && orderId > 0 ? [{ id: orderId }] : []),
+      ],
+    },
+  });
+
+  if (!order || !order.coinGateCallbackToken) {
+    logger.warn("CoinGate webhook: order not found");
+    return;
+  }
+
+  // اگر token با مقدار ذخیره‌شده یکی نباشد، پیام جعلی است.
+  if (!tokensMatch(order.coinGateCallbackToken, receivedToken)) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Invalid CoinGate token");
+  }
+
+  const status = payload.status;
+
+  // paid یعنی شبکه تأیید کرده؛ فقط این‌جا سفارش را PAID کن.
+  if (status === "paid") {
+    if (order.paymentStatus === PaymentStatus.PAID) {
+      return;
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.order.update({
+        where: { id: order.id },
+        data: {
+          status: OrderStatus.PLACED,
+          paymentStatus: PaymentStatus.PAID,
+          isValidOrder: true,
+          paidAt: new Date(),
+          cancelledAt: null,
+        },
+      });
+
+      const basket = await tx.basket.findUnique({
+        where: { userId: order.userId },
+        select: { id: true },
+      });
+
+      if (basket) {
+        await tx.basketItem.deleteMany({
+          where: { basketId: basket.id },
+        });
+      }
+    });
+    return;
+  }
+
+  // pending / confirming را نادیده می‌گیریم؛ هنوز پول قطعی نیست.
+  if (status === "expired" || status === "canceled" || status === "invalid") {
+    if (order.paymentStatus !== PaymentStatus.UNPAID) {
+      return;
+    }
+
+    await prisma.order.update({
+      where: { id: order.id },
+      data: {
+        status: OrderStatus.CANCELED,
+        paymentStatus: PaymentStatus.FAILED,
+        isValidOrder: false,
+        cancelledAt: new Date(),
+      },
+    });
+  }
+};
+
 export default {
   createCheckoutSession,
   handleStripeEvent,
   constructWebhookEvent,
+  handleCoinGateCallback,
 };

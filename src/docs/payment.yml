@@ -2,14 +2,19 @@
 paths:
   /payments/checkout:
     post:
-      summary: Start Stripe Checkout from my basket
+      summary: Start checkout from my basket (card or crypto)
       description: |
         Creates a `PENDING_PAYMENT` order from the authenticated user's basket
-        and a Stripe Checkout Session.
+        and a payment page URL.
+
+        Send `method` in the body:
+
+        - `card` (default) → Stripe card checkout
+        - `crypto` → CoinGate crypto invoice
 
         - Basket must not be empty
         - Amount is calculated on the server from basket prices
-        - Basket is **not** cleared until Stripe confirms payment via webhook
+        - Basket is **not** cleared until the provider confirms payment via webhook
         - Previous unpaid checkout sessions for this user are expired
         - Redirect the browser to the returned `url`
       tags:
@@ -21,10 +26,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PlaceOrderRequest"
-            example:
-              note: No onions
-              deliveryAddress: 123 Main Street, Los Angeles, CA
+              $ref: "#/components/schemas/CheckoutRequest"
+            examples:
+              crypto:
+                summary: Pay with crypto (CoinGate)
+                value:
+                  note: No onions
+                  deliveryAddress: 123 Main Street, Los Angeles, CA
+                  method: crypto
+              card:
+                summary: Pay with card (Stripe)
+                value:
+                  note: No onions
+                  deliveryAddress: 123 Main Street, Los Angeles, CA
+                  method: card
       responses:
         "201":
           description: Checkout session created
@@ -33,11 +48,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/CheckoutSession"
         "400":
-          description: Empty basket, missing address, or Stripe error
+          description: Empty basket, missing address, or payment provider error
         "401":
           $ref: "#/components/responses/Unauthorized"
         "503":
-          description: Stripe keys or redirect URLs are missing
+          description: Payment provider keys or redirect URLs are missing
 
   /payments/webhook:
     post:
@@ -73,6 +88,44 @@ paths:
         "400":
           description: Missing or invalid Stripe signature
 
+  /payments/coingate/webhook:
+    post:
+      summary: CoinGate payment callback
+      description: |
+        Called by CoinGate, not by the app. Do not send a user JWT.
+
+        Verifies the per-order `token`, then:
+
+        - `paid` → order becomes `PLACED` + `PAID`, basket is cleared
+        - `expired` / `canceled` / `invalid` → order becomes `CANCELED` + `FAILED`
+        - `new` / `pending` / `confirming` → ignored (payment not final)
+      tags:
+        - Payments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              id: 123456
+              order_id: "50"
+              status: paid
+              token: per-order-callback-token
+      responses:
+        "200":
+          description: Callback received
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  received:
+                    type: boolean
+                    example: true
+        "400":
+          description: Missing or invalid CoinGate token
+
 tags:
   - name: Payments
-    description: Stripe Checkout and payment webhooks
+    description: Card (Stripe) and crypto (CoinGate) checkout and payment webhooks
