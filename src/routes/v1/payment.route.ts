@@ -13,4 +13,11 @@ router.post(
   paymentController.createCheckoutSession,
 );
 
+router.post(
+  "/orders/:orderId/sync",
+  auth(),
+  validate(paymentValidation.syncOrderPayment),
+  paymentController.syncOrderPayment,
+);
+
 export default router;

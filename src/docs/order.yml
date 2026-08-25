@@ -84,7 +84,12 @@ paths:
           example: 1
     get:
       summary: Get one of my orders
-      description: Returns 404 if the order is missing, belongs to another user, or was soft-deleted.
+      description: |
+        Returns 404 if the order is missing or belongs to another user.
+
+        Unpaid CoinGate orders are synced from the CoinGate API before the
+        response is returned. Returning to `COINGATE_SUCCESS_URL` does not
+        mark the order paid by itself.
       tags:
         - Orders
       security:

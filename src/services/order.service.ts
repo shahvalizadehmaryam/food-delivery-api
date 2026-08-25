@@ -3,6 +3,7 @@ import { OrderStatus, PaymentStatus, Prisma } from "../generated/prisma";
 import prisma from "../client";
 import ApiError from "../utils/ApiError";
 import { OrderItemResponse, OrderResponse } from "../types/order";
+import paymentService from "./payment.service";
 
 type OrderWithItems = Prisma.OrderGetPayload<{ include: { items: true } }>;
 
@@ -138,9 +139,10 @@ const listMyOrders = async (
 const getMyOrder = async (
   userId: number,
   orderId: number,
+  options?: { forcePaymentSync?: boolean },
 ): Promise<OrderResponse> => {
   const order = await prisma.order.findFirst({
-    where: { id: orderId, userId, isValidOrder: true },
+    where: { id: orderId, userId },
     include: { items: true },
   });
 
@@ -148,7 +150,24 @@ const getMyOrder = async (
     throw new ApiError(httpStatus.NOT_FOUND, "Order not found");
   }
 
-  return toOrderResponse(order);
+  const synced = await paymentService.syncPendingCoinGateOrder(order, {
+    force: options?.forcePaymentSync,
+  });
+
+  if (!synced) {
+    return toOrderResponse(order);
+  }
+
+  const refreshed = await prisma.order.findFirst({
+    where: { id: orderId, userId },
+    include: { items: true },
+  });
+
+  if (!refreshed) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Order not found");
+  }
+
+  return toOrderResponse(refreshed);
 };
 
 const cancelMyOrder = async (

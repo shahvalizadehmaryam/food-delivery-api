@@ -8,6 +8,13 @@ const createCheckoutSession = {
   }),
 };
 
+const syncOrderPayment = {
+  params: Joi.object().keys({
+    orderId: Joi.number().integer().positive().required(),
+  }),
+};
+
 export default {
   createCheckoutSession,
+  syncOrderPayment,
 };

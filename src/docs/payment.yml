@@ -14,7 +14,8 @@ paths:
 
         - Basket must not be empty
         - Amount is calculated on the server from basket prices
-        - Basket is **not** cleared until the provider confirms payment via webhook
+        - Basket is **not** cleared until CoinGate/Stripe confirms payment
+          (webhook, or CoinGate API sync on `GET /orders/me/{orderId}`)
         - Previous unpaid checkout sessions for this user are expired
         - Redirect the browser to the returned `url`
       tags:
@@ -99,6 +100,15 @@ paths:
         - `paid` → order becomes `PLACED` + `PAID`, basket is cleared
         - `expired` / `canceled` / `invalid` → order becomes `CANCELED` + `FAILED`
         - `new` / `pending` / `confirming` → ignored (payment not final)
+
+        `COINGATE_CALLBACK_URL` must be a public URL. CoinGate cannot reach
+        `localhost`. Use ngrok (or similar) in development:
+
+        `https://xxxx.ngrok-free.app/v1/payments/coingate/webhook`
+
+        If the webhook never arrives, the app still syncs status from the
+        CoinGate API when the user fetches the order or calls
+        `POST /payments/orders/{orderId}/sync`.
       tags:
         - Payments
       requestBody:
@@ -125,6 +135,45 @@ paths:
                     example: true
         "400":
           description: Missing or invalid CoinGate token
+
+  /payments/orders/{orderId}/sync:
+    post:
+      summary: Sync crypto payment status from CoinGate
+      description: |
+        Pulls the current invoice status from CoinGate and updates the order.
+
+        Use this after the user returns from CoinGate (`COINGATE_SUCCESS_URL`).
+        That URL only redirects the browser; it does not mark the order paid.
+
+        `GET /orders/me/{orderId}` also syncs unpaid CoinGate orders, so polling
+        that endpoint is enough for the success page.
+
+        A missed webhook (for example `localhost` callback URL) does not leave
+        the order stuck. Unpaid invoices that CoinGate already marked `paid`
+        are updated here. Orders whose webhook never arrived at checkout time
+        are also updated on the next sync.
+      tags:
+        - Payments
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: integer
+            example: 55
+      responses:
+        "200":
+          description: Order after syncing with CoinGate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
 tags:
   - name: Payments
