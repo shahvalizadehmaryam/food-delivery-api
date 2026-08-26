@@ -4,13 +4,28 @@ import prisma from "./client";
 import config from "./config/config";
 import logger from "./config/logger";
 
-let server: Server;
-prisma.$connect().then(() => {
+let server: Server | undefined;
+
+const startLocalServer = async () => {
+  await prisma.$connect();
   logger.info("Connected to SQL Database");
   server = app.listen(config.port, () => {
     logger.info(`Listening to port ${config.port}`);
   });
-});
+};
+
+// On Vercel, export the Express app — do not call listen().
+// Locally, connect DB and listen as usual.
+if (!process.env.VERCEL) {
+  startLocalServer().catch((error) => {
+    logger.error(error);
+    process.exit(1);
+  });
+} else {
+  prisma.$connect()
+    .then(() => logger.info("Connected to SQL Database"))
+    .catch((error) => logger.error(error));
+}
 
 const exitHandler = () => {
   if (server) {
@@ -37,3 +52,5 @@ process.on("SIGTERM", () => {
     server.close();
   }
 });
+
+export default app;
