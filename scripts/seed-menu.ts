@@ -16,163 +16,184 @@ type SeedMenuItem = {
 
 const SECTIONS = [
   { id: 'burgers', title: 'Burgers', sortOrder: 0 },
-  { id: 'fries', title: 'Fries', sortOrder: 1 },
+  { id: 'fries', title: 'Fries & Sides', sortOrder: 1 },
   { id: 'cold-drinks', title: 'Cold Drinks', sortOrder: 2 },
 ] as const;
-
-const DESCRIPTION =
-  '1 McChicken™, 1 Big Mac™, 1 Royal Cheeseburger, 3 medium sized French Fries, 3 cold drinks';
 
 const burgers: SeedMenuItem[] = [
   {
     id: 1,
-    title: 'Royal Cheese Burger with extra Fries',
-    description: DESCRIPTION,
-    image: '/images/menu/burger/burger-1.svg',
-    mediumPrice: 23.1,
+    title: 'Classic American Cheeseburger',
+    description:
+      'Grilled beef patty, American cheese, lettuce, tomato, pickles, and house sauce on a toasted brioche bun.',
+    image:
+      'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80',
+    mediumPrice: 9.99,
     discount: { discountType: 'percentage', discountValue: 10 },
   },
   {
     id: 2,
-    title: 'The classics for 3',
-    description: DESCRIPTION,
-    image: '/images/menu/burger/burger-2.svg',
-    mediumPrice: 26.6,
-    discount: { discountType: 'fixed', discountValue: 5 },
+    title: 'Bacon Cheeseburger',
+    description:
+      'Angus beef, smoked bacon, cheddar, caramelized onions, and BBQ mayo on a potato roll.',
+    image:
+      'https://images.unsplash.com/photo-1553979459-d2229ba7433b?auto=format&fit=crop&w=800&q=80',
+    mediumPrice: 11.49,
+    discount: { discountType: 'fixed', discountValue: 1.5 },
   },
   {
     id: 3,
-    title: 'Royal Cheese Burger with extra Fries',
-    description: DESCRIPTION,
-    image: '/images/menu/burger/burger-3.svg',
-    mediumPrice: 25.12,
+    title: 'Double Smash Burger',
+    description:
+      'Two thin smash patties, American cheese, pickles, diced onion, and smash sauce on a soft bun.',
+    image:
+      'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=800&q=80',
+    mediumPrice: 12.99,
     discount: { discountType: 'percentage', discountValue: 15 },
   },
   {
     id: 4,
-    title: 'The classics for 2',
-    description: DESCRIPTION,
-    image: '/images/menu/burger/burger-4.svg',
-    mediumPrice: 27.6,
-    discount: { discountType: 'fixed', discountValue: 3 },
+    title: 'Mushroom Swiss Burger',
+    description:
+      'Beef patty topped with sautéed mushrooms, melted Swiss cheese, and garlic aioli.',
+    image:
+      'https://images.unsplash.com/photo-1572802419224-296b0aeee0d9?auto=format&fit=crop&w=800&q=80',
+    mediumPrice: 11.99,
+    discount: { discountType: 'fixed', discountValue: 1 },
   },
   {
     id: 5,
-    title: 'Royal Cheese Burger with extra Fries',
-    description: DESCRIPTION,
-    image: '/images/menu/burger/burger-5.svg',
-    mediumPrice: 21.12,
+    title: 'BBQ Ranch Burger',
+    description:
+      'Flame-grilled beef, cheddar, crispy onion strings, ranch, and smoky BBQ sauce.',
+    image:
+      'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=800&q=80',
+    mediumPrice: 10.99,
     discount: { discountType: 'percentage', discountValue: 10 },
   },
   {
     id: 6,
-    title: 'Royal Cheese Burger with extra Fries',
-    description: DESCRIPTION,
-    image: '/images/menu/burger/burger-6.svg',
-    mediumPrice: 17.4,
-    discount: { discountType: 'fixed', discountValue: 2 },
+    title: 'Turkey Avocado Burger',
+    description:
+      'Lean turkey patty, sliced avocado, tomato, spinach, and chipotle mayo on a whole-wheat bun.',
+    image:
+      'https://images.unsplash.com/photo-1520072959219-c595dc870360?auto=format&fit=crop&w=800&q=80',
+    mediumPrice: 10.49,
+    discount: { discountType: 'fixed', discountValue: 0.75 },
   },
 ];
 
 const fries: SeedMenuItem[] = [
   {
     id: 7,
-    title: 'Royal Cheese Burger with extra Fries',
-    description: DESCRIPTION,
-    image: '/images/menu/fries/fries-1.svg',
-    mediumPrice: 23.1,
+    title: 'Classic French Fries',
+    description: 'Crispy golden fries seasoned with sea salt. Served hot and fresh.',
+    image:
+      'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=800&q=80',
+    mediumPrice: 3.99,
     discount: { discountType: 'percentage', discountValue: 10 },
   },
   {
     id: 8,
-    title: 'The classics for 3',
-    description: DESCRIPTION,
-    image: '/images/menu/fries/fries-2.svg',
-    mediumPrice: 26.6,
-    discount: { discountType: 'fixed', discountValue: 5 },
+    title: 'Cheese Fries',
+    description: 'Crispy fries smothered in melted cheddar cheese sauce.',
+    image:
+      'https://images.unsplash.com/photo-1625944525533-473f1a3d54e7?auto=format&fit=crop&w=800&q=80',
+    mediumPrice: 5.49,
+    discount: { discountType: 'fixed', discountValue: 0.5 },
   },
   {
     id: 9,
-    title: 'Royal Cheese Burger with extra Fries',
-    description: DESCRIPTION,
-    image: '/images/menu/fries/fries-3.svg',
-    mediumPrice: 25.12,
+    title: 'Chili Cheese Fries',
+    description: 'Fries topped with hearty beef chili, cheddar, and green onions.',
+    image:
+      'https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?auto=format&fit=crop&w=800&q=80',
+    mediumPrice: 6.99,
     discount: { discountType: 'percentage', discountValue: 15 },
   },
   {
     id: 10,
-    title: 'The classics for 2',
-    description: DESCRIPTION,
-    image: '/images/menu/fries/fries-4.svg',
-    mediumPrice: 27.6,
-    discount: { discountType: 'fixed', discountValue: 3 },
+    title: 'Sweet Potato Fries',
+    description: 'Crispy sweet potato fries with a light cinnamon-salt seasoning. Served with ranch.',
+    image:
+      'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=800&q=80',
+    mediumPrice: 4.99,
+    discount: { discountType: 'fixed', discountValue: 0.5 },
   },
   {
     id: 11,
-    title: 'Royal Cheese Burger with extra Fries',
-    description: DESCRIPTION,
-    image: '/images/menu/fries/fries-5.svg',
-    mediumPrice: 21.12,
+    title: 'Loaded Bacon Fries',
+    description: 'Fries loaded with bacon bits, cheddar, sour cream, and chives.',
+    image:
+      'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=800&q=80',
+    mediumPrice: 7.49,
     discount: { discountType: 'percentage', discountValue: 10 },
   },
   {
     id: 12,
-    title: 'Royal Cheese Burger with extra Fries',
-    description: DESCRIPTION,
-    image: '/images/menu/fries/fries-6.svg',
-    mediumPrice: 17.4,
-    discount: { discountType: 'fixed', discountValue: 2 },
+    title: 'Crispy Onion Rings',
+    description: 'Beer-battered onion rings fried golden brown. Served with zesty dipping sauce.',
+    image:
+      'https://images.unsplash.com/photo-1464305795204-6f5bbfc7fb81?auto=format&fit=crop&w=800&q=80',
+    mediumPrice: 4.79,
+    discount: { discountType: 'fixed', discountValue: 0.4 },
   },
 ];
 
 const coldDrinks: SeedMenuItem[] = [
   {
     id: 13,
-    title: 'Royal Cheese Burger with extra Fries',
-    description: DESCRIPTION,
-    image: '/images/menu/cold-drinks/cold-drink-1.svg',
-    mediumPrice: 23.1,
+    title: 'Coca-Cola',
+    description: 'Ice-cold Coca-Cola classic. The all-American fountain favorite.',
+    image:
+      'https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=800&q=80',
+    mediumPrice: 2.79,
     discount: { discountType: 'percentage', discountValue: 10 },
   },
   {
     id: 14,
-    title: 'The classics for 3',
-    description: DESCRIPTION,
-    image: '/images/menu/cold-drinks/cold-drink-2.svg',
-    mediumPrice: 26.6,
-    discount: { discountType: 'fixed', discountValue: 5 },
+    title: 'Fresh Lemonade',
+    description: 'House-made lemonade with fresh lemons and a touch of cane sugar.',
+    image:
+      'https://images.unsplash.com/photo-1622597467836-f3285f2131b8?auto=format&fit=crop&w=800&q=80',
+    mediumPrice: 3.49,
+    discount: { discountType: 'fixed', discountValue: 0.4 },
   },
   {
     id: 15,
-    title: 'Royal Cheese Burger with extra Fries',
-    description: DESCRIPTION,
-    image: '/images/menu/cold-drinks/cold-drink-3.svg',
-    mediumPrice: 25.12,
+    title: 'Southern Sweet Tea',
+    description: 'Classic iced sweet tea, brewed fresh and served over ice.',
+    image:
+      'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=800&q=80',
+    mediumPrice: 2.99,
     discount: { discountType: 'percentage', discountValue: 15 },
   },
   {
     id: 16,
-    title: 'The classics for 2',
-    description: DESCRIPTION,
-    image: '/images/menu/cold-drinks/cold-drink-4.svg',
-    mediumPrice: 27.6,
-    discount: { discountType: 'fixed', discountValue: 3 },
+    title: 'Chocolate Milkshake',
+    description: 'Thick hand-spun chocolate milkshake topped with whipped cream.',
+    image:
+      'https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=800&q=80',
+    mediumPrice: 5.49,
+    discount: { discountType: 'fixed', discountValue: 0.5 },
   },
   {
     id: 17,
-    title: 'Royal Cheese Burger with extra Fries',
-    description: DESCRIPTION,
-    image: '/images/menu/cold-drinks/cold-drink-5.svg',
-    mediumPrice: 21.12,
+    title: 'Vanilla Milkshake',
+    description: 'Creamy vanilla milkshake made with real ice cream.',
+    image:
+      'https://images.unsplash.com/photo-1579954115545-a95591f28bfc?auto=format&fit=crop&w=800&q=80',
+    mediumPrice: 5.29,
     discount: { discountType: 'percentage', discountValue: 10 },
   },
   {
     id: 18,
-    title: 'Royal Cheese Burger with extra Fries',
-    description: DESCRIPTION,
-    image: '/images/menu/cold-drinks/cold-drink-6.svg',
-    mediumPrice: 17.4,
-    discount: { discountType: 'fixed', discountValue: 2 },
+    title: 'Root Beer Float',
+    description: 'Chilled root beer poured over a scoop of vanilla ice cream.',
+    image:
+      'https://images.unsplash.com/photo-1551024506-0bccd828d307?auto=format&fit=crop&w=800&q=80',
+    mediumPrice: 4.99,
+    discount: { discountType: 'fixed', discountValue: 0.5 },
   },
 ];
 

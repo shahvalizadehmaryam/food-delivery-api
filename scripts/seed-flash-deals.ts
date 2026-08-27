@@ -1,50 +1,53 @@
 /**
- * Seeds 6 active flash deals from the existing menu list.
+ * Seeds 6 active "Today's Exclusive Deals" from the US menu.
  * Run after seed-menu.ts so menu items 1–18 exist.
  *
  * Usage: npx tsx scripts/seed-flash-deals.ts
  */
 import prisma from "../src/client";
 
-const DURATION_HOURS = 4;
+const DURATION_HOURS = 8;
 
-/** 6 deals: 2 burgers, 2 fries, 2 cold drinks — medium size only */
+/**
+ * Exclusive deals mix — popular US items with promo-style discounts.
+ * Titles/images/descriptions come from MenuItem (seed-menu.ts).
+ */
 const FLASH_DEALS = [
   {
-    menuItemId: 1,
-    sizeId: "medium",
-    discountType: "percentage",
-    discountValue: 25,
-  },
-  {
-    menuItemId: 2,
-    sizeId: "medium",
-    discountType: "fixed",
-    discountValue: 4,
-  },
-  {
-    menuItemId: 7,
+    menuItemId: 1, // Classic American Cheeseburger
     sizeId: "medium",
     discountType: "percentage",
     discountValue: 20,
   },
   {
-    menuItemId: 8,
+    menuItemId: 3, // Double Smash Burger
     sizeId: "medium",
-    discountType: "fixed",
-    discountValue: 3,
+    discountType: "percentage",
+    discountValue: 25,
   },
   {
-    menuItemId: 13,
+    menuItemId: 5, // BBQ Ranch Burger
+    sizeId: "medium",
+    discountType: "fixed",
+    discountValue: 2,
+  },
+  {
+    menuItemId: 9, // Chili Cheese Fries
     sizeId: "medium",
     discountType: "percentage",
     discountValue: 30,
   },
   {
-    menuItemId: 14,
+    menuItemId: 12, // Crispy Onion Rings
     sizeId: "medium",
     discountType: "fixed",
-    discountValue: 5,
+    discountValue: 1,
+  },
+  {
+    menuItemId: 16, // Chocolate Milkshake
+    sizeId: "medium",
+    discountType: "percentage",
+    discountValue: 20,
   },
 ] as const;
 
@@ -83,7 +86,7 @@ async function main() {
 
   const deals = await prisma.flashDeal.findMany({
     include: {
-      menuItem: { select: { id: true, title: true } },
+      menuItem: { select: { id: true, title: true, description: true, image: true } },
     },
     orderBy: { menuItemId: "asc" },
   });
@@ -99,6 +102,8 @@ async function main() {
           id: d.id,
           menuItemId: d.menuItemId,
           title: d.menuItem.title,
+          description: d.menuItem.description,
+          image: d.menuItem.image,
           sizeId: d.sizeId,
           discountType: d.discountType,
           discountValue: Number(d.discountValue),

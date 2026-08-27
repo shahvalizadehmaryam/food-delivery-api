@@ -36,7 +36,7 @@ const toFlashDeal = (
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
-    menuItem?: { id: number; title: string; image: string };
+    menuItem?: { id: number; title: string; description: string; image: string };
   },
 ): FlashDeal => ({
   id: deal.id,
@@ -72,7 +72,7 @@ export const activeDealWhere = (now = new Date()): Prisma.FlashDealWhereInput =>
 });
 
 const includeMenuItem = {
-  menuItem: { select: { id: true, title: true, image: true } },
+  menuItem: { select: { id: true, title: true, description: true, image: true } },
 } as const;
 
 /**
